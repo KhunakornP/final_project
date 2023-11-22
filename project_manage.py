@@ -1,5 +1,6 @@
 import database
 import os
+import csv
 
 
 def initializing():
@@ -8,6 +9,7 @@ def initializing():
     for files in os.listdir():
         if files.endswith(".csv"):
             data = database.Table(files, database.csv_Reader(files).read())
+            print(data)
             db.insert(data)
 
 
@@ -36,7 +38,17 @@ def login():
 
 # define a function called exit
 def exit():
-    pass
+    for tables in db.database:
+        keys = tables.table[0].keys()
+        myFile = open(f"Modified files/{tables.table_name}" + ".modified", 'w')
+        writer = csv.DictWriter(myFile, fieldnames= keys)
+        writer.writeheader()
+        writer.writerows(tables.table)
+        myFile.close()
+        myFile = open(f"Modified files/{tables.table_name}" + ".modified", 'r')
+        print("The content of the csv file is:")
+        print(myFile.read())
+        myFile.close()
 
 # here are things to do in this function:
    # write out all the tables that have been modified to the corresponding csv files
@@ -48,22 +60,25 @@ def exit():
 # make calls to the initializing and login functions defined above
 
 initializing()
-val = login()
-print(val)
-# based on the return value for login, activate the code that performs activities according to the role defined for that person_id
+session = True
+while session:
+    val = login()
+    while val == None:
+        print("Username or password is invalid.")
+        val = login()
+    if val[1] == 'admin':
+        pass
+    elif val[1] == 'student':
+        pass
+    elif val[1] == 'member':
+        pass
+    elif val[1] == 'lead':
+        pass
+    elif val[1] == 'faculty':
+        pass
+    elif val[1] == 'advisor':
+        pass
 
-# if val[1] = 'admin':
-    # see and do admin related activities
-# elif val[1] = 'student':
-    # see and do student related activities
-# elif val[1] = 'member':
-    # see and do member related activities
-# elif val[1] = 'lead':
-    # see and do lead related activities
-# elif val[1] = 'faculty':
-    # see and do faculty related activities
-# elif val[1] = 'advisor':
-    # see and do advisor related activities
 
 # once everyhthing is done, make a call to the exit function
 exit()
