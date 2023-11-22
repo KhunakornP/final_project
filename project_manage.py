@@ -34,25 +34,26 @@ def exit():
         print(myFile.read())
         myFile.close()
 
+
 initializing()
-# session = True
-# while session:
-#     val = login()
-#     while val == None:
-#         print("Username or password is invalid.")
-#         val = login()
-#     if val[1] == 'admin':
-#         pass
-#     elif val[1] == 'student':
-#         pass
-#     elif val[1] == 'member':
-#         pass
-#     elif val[1] == 'lead':
-#         pass
-#     elif val[1] == 'faculty':
-#         pass
-#     elif val[1] == 'advisor':
-#         pass
+session = True
+while session:
+    val = login()
+    while val is None:
+        print("Username or password is invalid.")
+        val = login()
+    if val[1] == 'admin':
+        pass
+    elif val[1] == 'student':
+        pass
+    elif val[1] == 'member':
+        pass
+    elif val[1] == 'lead':
+        pass
+    elif val[1] == 'faculty':
+        pass
+    elif val[1] == 'advisor':
+        pass
 
 
 # once everyhthing is done, make a call to the exit function

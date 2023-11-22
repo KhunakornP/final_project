@@ -84,8 +84,47 @@ class Table:
     def __str__(self):
         return self.table_name + ':' + str(self.table)
 
+class User:
+    def __init__(self, rank, user):
+        self.clearance = rank
+        self.username = user
+        self.advisor = False
+
+    def manage(self):
+        print(f"Welcome {self.username} here are your available actions.")
+        self.actions()
+        action = input("Enter action: ")
+        while action != "0":
+            self.actions()
+            action = input("Enter action: ")
+
+    def actions(self):
+        if self.clearance == 1:
+            print("1. Update the database.")
+        if self.clearance == 2:
+            print("1. See advisor requests.")
+            print("2. Respond to requests.")
+            print("3. See project details.")
+            print("4. Evaluate Projects.")
+            if self.advisor:
+                print("5. Approve project")
+        if self.clearance == 3:
+            print("1. Create project.")
+            print("2. Find members.")
+            print("3. Send invitation.")
+            print("4. Modify project details.")
+            print("5. Request advisor.")
+            print("6. Submit project for approval.")
+        if self.clearance == 4:
+            print("1. See project invitations.")
+            print("2. Respond to invitations.")
+            print("3. Elevate to lead student.")
+        if self.clearance == 5:
+            print("1. Modify project details.")
+        print("Enter 0 to exit.")
 
 if __name__ == "__main__":
+    # test cases
     print(csv_Reader("persons.csv").read())
     print()
     print(Table("persons", csv_Reader("persons.csv").read()))
@@ -95,4 +134,11 @@ if __name__ == "__main__":
     print()
     print(Table("persons", csv_Reader("persons.csv").read())
           .update(0,"ID", 1))
-
+    u1 = User(1, "joe")
+    u1.manage()
+    # table for clearance
+    # 1 = admin
+    # 2 = faculty
+    # 3 = Lead
+    # 4 student
+    # 5 member
