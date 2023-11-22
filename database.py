@@ -25,6 +25,11 @@ class Database:
     def insert(self, data):
         self.database.append(data)
 
+    def search(self, name):
+        for table in self.database:
+            if table.table_name == name:
+                return table
+        return
 
 # add in code for a Table class
 class Table:

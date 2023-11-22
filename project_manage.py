@@ -3,10 +3,11 @@ import os
 
 
 def initializing():
+    global db
     db = database.Database()
     for files in os.listdir():
         if files.endswith(".csv"):
-            data = database.csv_Reader(files).read()
+            data = database.Table(files, database.csv_Reader(files).read())
             db.insert(data)
 
 
@@ -24,12 +25,14 @@ def initializing():
 # define a funcion called login
 
 def login():
-    pass
+    user = input("Enter username: ")
+    password = input("Enter password: ")
+    for users in db.search("login.csv").table:
+        if user in users["username"]:
+            if password in users["password"]:
+                return [users["ID"], users["role"]]
+    return
 
-# here are things to do in this function:
-   # add code that performs a login task
-        # ask a user for a username and password
-        # returns [ID, role] if valid, otherwise returning None
 
 # define a function called exit
 def exit():
@@ -46,7 +49,7 @@ def exit():
 
 initializing()
 val = login()
-
+print(val)
 # based on the return value for login, activate the code that performs activities according to the role defined for that person_id
 
 # if val[1] = 'admin':
