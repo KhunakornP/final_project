@@ -1,5 +1,6 @@
 import csv, os
 import copy
+import time
 
 
 class csv_Reader:
@@ -95,10 +96,12 @@ class User:
         print(f"Welcome {self.username} here are your available actions.")
         self.help()
         action = input("Enter action: ")
+        print()
         while action != "0":
             self.actions(action)
             self.help()
             action = input("Enter action: ")
+            print()
 
     def help(self):
         if self.clearance == 1:
@@ -144,6 +147,28 @@ class User:
                 data = input("Enter data: ")
                 print()
             print(self.database.search(table))
+        elif self.clearance == 2:
+            if action == "1":
+                for request in self.database.search("Advisor_request.csv").table:
+                    print("Your current requests.")
+                    if request["Advisor"] == self.username:
+                        print(f"Project ID: {request['Project ID']}\n"
+                              f"Requesting {request['Advisor']}")
+                        print()
+            elif action == "2":
+                print("Select request to confirm.")
+                for request in self.database.search("Advisor_request.csv").table:
+                    if request["Advisor"] == self.username:
+                        print(f"Project ID: {request['Project ID']}")
+                project_id = input("Enter id: ")
+                response = input("Enter response: ")
+                for request in self.database.search("Advisor_request.csv").table:
+                    if request["Project ID"] == project_id:
+                        request["Response"] = response
+                        date = time.localtime()
+                        request["Date of response"] = time.asctime(time.localtime())
+                        print(self.database.search("Advisor_request.csv"))
+
 
 if __name__ == "__main__":
     # test cases
@@ -159,7 +184,9 @@ if __name__ == "__main__":
     db = Database()
     x =Table("persons", csv_Reader("persons.csv").read())
     db.insert(x)
-    u1 = User(1, "joe",db)
+    x = Table("Advisor_request.csv", csv_Reader("Advisor_request.csv").read())
+    db.insert(x)
+    u1 = User(2, "Karim.B",db)
     u1.manage()
 
     # table for clearance
