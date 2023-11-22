@@ -1,9 +1,14 @@
-# import database module
+import database
+import os
 
-# define a funcion called initializing
 
 def initializing():
-    pass
+    db = database.Database()
+    for files in os.listdir():
+        if files.endswith(".csv"):
+            data = database.csv_Reader(files).read()
+            db.insert(data)
+
 
 # here are things to do in this function:
 
