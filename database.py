@@ -16,10 +16,15 @@ class Csv_reader:
                 self.data.append(dict(row))
         return self.data
 
-# add in code for a Database class
+
 class Database:
     def __init__(self):
-        pass
+        self.database = []
+
+    def insert(self, data):
+        self.database.append(data)
+
+
 # add in code for a Table class
 
 # modify the code in the Table class so that it supports the insert operation where an entry can be added to a list of dictionary
