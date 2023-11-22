@@ -87,11 +87,12 @@ class Table:
 
 
 class User:
-    def __init__(self, rank, user, db):
+    def __init__(self, rank, user, db, ID):
         self.clearance = rank
         self.username = user
         self.advisor = False
         self.database = db
+        self.id = ID
     def manage(self):
         print(f"Welcome {self.username} here are your available actions.")
         self.help()
@@ -99,9 +100,9 @@ class User:
         print()
         while action != "0":
             self.actions(action)
+            print()
             self.help()
             action = input("Enter action: ")
-            print()
 
     def help(self):
         if self.clearance == 1:
@@ -116,7 +117,7 @@ class User:
         elif self.clearance == 3:
             print("1. Create project.")
             print("2. Find members.")
-            print("3. Send invitation.")
+            print("3. Send/accept project invitations.")
             print("4. Modify project details.")
             print("5. Request advisor.")
             print("6. Submit project for approval.")
@@ -165,9 +166,71 @@ class User:
                 for request in self.database.search("Advisor_request.csv").table:
                     if request["Project ID"] == project_id:
                         request["Response"] = response
-                        date = time.localtime()
                         request["Date of response"] = time.asctime(time.localtime())
                         print(self.database.search("Advisor_request.csv"))
+            elif action == "3":
+                print("List of projects:")
+                for projects in self.database.search("Projects.csv").table:
+                    print(projects)
+            elif action == "4":
+                pass
+            # evaluation will be implemented in the future
+        elif self.clearance == 3:
+            project = {}
+            if action == "1":
+                if len(self.database.search("Projects.csv").table) is None:
+                    project.update({"ID" : "0001"})
+                else:
+                    uid = str(len(self.database.search("Projects.csv").table) + 1)
+                    while len(uid) < 4:
+                        uid = "0" + uid
+                    project.update({"ID": uid})
+                title = input("Enter project title: ")
+                project.update({"Title": title})
+                project.update(({"Lead": f"{self.username} : {self.id}"}))
+                project.update({"Member 1": "None"})
+                project.update({"Member 2": "None"})
+                project.update({"Advisor": "None"})
+                project.update({"Status": "Awaiting members"})
+                self.database.search("Projects.csv").insert([project])
+                print(self.database.search("Projects.csv"))
+            elif action == "2":
+                print("Showing students without a group.")
+                for students in self.database.search("persons.csv").table:
+                    if students["ID"] not in self.database.search("Projects.csv").table:
+                        if students["type"] == "student":
+                            print(f"Name: {students['first']} "
+                                  f"{students['last']} ID: {students['ID']}")
+            elif action == "3":
+                member_flag = False
+                print("Inviting students to project.")
+                ID = input("Enter student ID: ")
+                for member in self.database.search("Projects.csv").table:
+                    if ID in member["ID"]:
+                        print("Student is already in a project.")
+                        return
+                for students in self.database.search("persons.csv").table:
+                    if ID in students["ID"]:
+                        member_flag = True
+                        break
+                if not member_flag:
+                    print("ID is invalid.")
+                    return
+                request = {}
+                if len(self.database.search("Projects.csv").table) == 0:
+                    print("You do not have a project. Create one first.")
+                    return
+                for projects in self.database.search("Projects.csv").table:
+                    if str(self.id) in projects["Lead"]:
+                        request.update({"Project ID": projects["ID"]})
+                        request.update({"Member": ID})
+                        request.update({"Response": "Awaiting response"})
+                        request.update({"Date": time.asctime(time.localtime())})
+                        self.database.search("member_request.csv").insert([request])
+                        print(self.database.search("member_request.csv"))
+                        break
+                    print("You do not have a project. Create 1 first.")
+                    return
 
 
 if __name__ == "__main__":
@@ -182,11 +245,15 @@ if __name__ == "__main__":
     # print(Table("persons", csv_Reader("persons.csv").read())
     #       .update(0,"ID", 1))
     db = Database()
-    x =Table("persons", csv_Reader("persons.csv").read())
+    x =Table("persons.csv", csv_Reader("persons.csv").read())
     db.insert(x)
-    x = Table("Advisor_request.csv", csv_Reader("Advisor_request.csv").read())
-    db.insert(x)
-    u1 = User(2, "Karim.B",db)
+    y = Table("Advisor_request.csv", csv_Reader("Advisor_request.csv").read())
+    db.insert(y)
+    z = Table("Projects.csv", csv_Reader("Projects.csv").read())
+    db.insert(z)
+    a = Table("member_request.csv", csv_Reader("member_request.csv").read())
+    db.insert(a)
+    u1 = User(3, "Karim.B",db, 2472659)
     u1.manage()
 
     # table for clearance
