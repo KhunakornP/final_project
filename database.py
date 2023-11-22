@@ -72,6 +72,10 @@ class Table:
             temps.append(dict_temp)
         return temps
 
+    def update(self, index, key, value):
+        self.table[index][key] = value
+        return self.table
+
     def __str__(self):
         return self.table_name + ':' + str(self.table)
 
@@ -83,3 +87,7 @@ if __name__ == "__main__":
     print()
     print(Table("persons", csv_Reader("persons.csv").read())
           .insert([{'friend': 'joe'}, {'animal' : "duck"}]))
+    print()
+    print(Table("persons", csv_Reader("persons.csv").read())
+          .update(0,"ID", 1))
+
