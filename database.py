@@ -311,13 +311,8 @@ class User:
                     print(self.database.search("member_request.csv").table)
                     print()
                     print(self.database.search("Projects.csv").table)
-
-
-
-
-
-
-
+                elif action == "4":
+                    pass
 
 if __name__ == "__main__":
     # test cases
