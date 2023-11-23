@@ -323,6 +323,43 @@ class User:
                         print(project)
                         return
                 print("Project not found have you created one yet?")
+            elif action == "5":
+                advisor_list = []
+                count = 1
+                check = False
+                for project in self.database.search("Projects.csv").table:
+                    if self.id in project["Lead"]:
+                        check = True
+                if not check:
+                    print("You do not have a project. Create one first.")
+                    return
+                print("List of advisors: ")
+                for advisors in self.database.search("persons.csv").table:
+                    if advisors["type"] == "faculty":
+                        advisor_list.append(advisors)
+                        print(f"{count}. {advisors['first']} {advisors['last']}")
+                        count += 1
+                print("Enter a number from the list to invite an advisor.")
+                advisor = input("Enter number: ")
+                while int(advisor) not in range(count):
+                    print("Advisor is not in the list.")
+                    advisor = input("Enter number: ")
+                request = {}
+                for projects in self.database.search("Projects.csv").table:
+                    if str(self.id) in projects["Lead"]:
+                        request.update({"Project ID": projects["ID"]})
+                        request.update({"Advisor":
+                                        f"{advisor_list[int(advisor)-1]['first'] }"
+                                        f"{advisor_list[int(advisor)-1]['last']}"}
+                                       )
+                        request.update({"Response": "Awaiting response"})
+                        request.update(
+                            {"Date": time.asctime(time.localtime())})
+                        self.database.search("Advisor_request.csv").insert(
+                            [request])
+                        print("Request sent")
+                        print(self.database.search("Advisor_request.csv"))
+
 
 
 
