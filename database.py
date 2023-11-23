@@ -93,6 +93,7 @@ class User:
         self.advisor = False
         self.database = db
         self.id = ID
+
     def manage(self):
         print(f"Welcome {self.username} here are your available actions.")
         self.help()
@@ -103,6 +104,11 @@ class User:
             print()
             self.help()
             action = input("Enter action: ")
+
+    def find_user(self, ID):
+        for i in self.database.search("persons.csv").table:
+            if i["ID"] == str(ID):
+                return i
 
     def help(self):
         if self.clearance == 1:
@@ -202,35 +208,57 @@ class User:
                             print(f"Name: {students['first']} "
                                   f"{students['last']} ID: {students['ID']}")
             elif action == "3":
-                member_flag = False
-                print("Inviting students to project.")
-                ID = input("Enter student ID: ")
-                for member in self.database.search("Projects.csv").table:
-                    if ID in member["ID"]:
-                        print("Student is already in a project.")
+                choice = input("1. Invite students\n2. View requests\n"
+                               "Enter choice: ")
+                print()
+                if choice == "1":
+                    member_flag = False
+                    print("Inviting students to project.")
+                    ID = input("Enter student ID: ")
+                    for member in self.database.search("Projects.csv").table:
+                        if ID in member["ID"]:
+                            print("Student is already in a project.")
+                            return
+                    for students in self.database.search("persons.csv").table:
+                        if ID in students["ID"]:
+                            member_flag = True
+                            break
+                    if not member_flag:
+                        print("ID is invalid.")
                         return
-                for students in self.database.search("persons.csv").table:
-                    if ID in students["ID"]:
-                        member_flag = True
-                        break
-                if not member_flag:
-                    print("ID is invalid.")
-                    return
-                request = {}
-                if len(self.database.search("Projects.csv").table) == 0:
-                    print("You do not have a project. Create one first.")
-                    return
-                for projects in self.database.search("Projects.csv").table:
-                    if str(self.id) in projects["Lead"]:
-                        request.update({"Project ID": projects["ID"]})
-                        request.update({"Member": ID})
-                        request.update({"Response": "Awaiting response"})
-                        request.update({"Date": time.asctime(time.localtime())})
-                        self.database.search("member_request.csv").insert([request])
-                        print(self.database.search("member_request.csv"))
-                        break
-                    print("You do not have a project. Create 1 first.")
-                    return
+                    request = {}
+                    if len(self.database.search("Projects.csv").table) == 0:
+                        print("You do not have a project. Create one first.")
+                        return
+                    for projects in self.database.search("Projects.csv").table:
+                        if str(self.id) in projects["Lead"]:
+                            request.update({"Project ID": projects["ID"]})
+                            request.update({"Member": ID})
+                            request.update({"Response": "Awaiting response"})
+                            request.update({"Date": time.asctime(time.localtime())})
+                            self.database.search("member_request.csv").insert([request])
+                            print(self.database.search("member_request.csv"))
+                            break
+                        print("You do not have a project. Create 1 first.")
+                        return
+                elif choice == "2":
+                    count = 1
+                    print("Showing member requests.")
+                    for request in self.database.search("member_request.csv").table:
+                        for project in self.database.search("Projects.csv").table:
+                            if request["Project ID"] in project["ID"]:
+                                if str(self.id) in project["Lead"]:
+                                    print(f"{count}. "
+                                          f"{self.find_user(request['Member'])['first']} "
+                                          f"{self.find_user(request['Member'])['last']} "
+                                          f"ID: {request['Member']}")
+                                    count += 1
+                    if count == 1:
+                        print("No pending request found.")
+                        return
+
+
+
 
 
 if __name__ == "__main__":
@@ -253,7 +281,7 @@ if __name__ == "__main__":
     db.insert(z)
     a = Table("member_request.csv", csv_Reader("member_request.csv").read())
     db.insert(a)
-    u1 = User(3, "Karim.B",db, 2472659)
+    u1 = User(3, "Karim.B",db, '2472659')
     u1.manage()
 
     # table for clearance
