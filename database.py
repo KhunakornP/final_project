@@ -123,7 +123,7 @@ class User:
         elif self.clearance == 3:
             print("1. Create project.")
             print("2. Find members.")
-            print("3. Send/accept project invitations.")
+            print("3. Invite/add students to the project")
             print("4. Modify project details.")
             print("5. Request advisor.")
             print("6. Submit project for approval.")
@@ -208,8 +208,8 @@ class User:
                             print(f"Name: {students['first']} "
                                   f"{students['last']} ID: {students['ID']}")
             elif action == "3":
-                choice = input("1. Invite students\n2. View requests\n"
-                               "Enter choice: ")
+                choice = input("1. Invite students\n2. View accepted "
+                               "requests\nEnter choice: ")
                 print()
                 if choice == "1":
                     member_flag = False
@@ -243,7 +243,7 @@ class User:
                         return
                 elif choice == "2":
                     count = 1
-                    print("Showing member requests.")
+                    print("Showing Accepted requests.")
                     for request in self.database.search("member_request.csv").table:
                         for project in self.database.search("Projects.csv").table:
                             if request["Project ID"] in project["ID"]:
@@ -256,6 +256,18 @@ class User:
                     if count == 1:
                         print("No pending request found.")
                         return
+                    request = input("Enter a request number to approve or"
+                                    "deny: ")
+                    while int(request) not in range(count+1):
+                        print("Invalid request number.")
+                        request = input("Enter a request number to approve or"
+                                        "deny: ")
+                    response = input("Approve or deny: ")
+                    self.database.search("member_request.csv").table[
+                        int(request) - 1].update({"Response": response})
+                    print(self.database.search("member_request.csv").table)
+
+
 
 
 
