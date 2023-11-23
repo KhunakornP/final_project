@@ -359,6 +359,26 @@ class User:
                             [request])
                         print("Request sent")
                         print(self.database.search("Advisor_request.csv"))
+            elif action == "6":
+                check = False
+                for projects in self.database.search("Projects.csv").table:
+                    if str(self.id) in projects["Lead"]:
+                        check = True
+                if not check:
+                    print("No project provided aborting.")
+                    return
+                print("Submitting final project for evaluation.")
+                choice = input("Confirm?(yes/no): ")
+                while choice != "yes" and choice != "no":
+                    print("Invalid choice.")
+                    choice = input("Confirm?(yes/no): ")
+                if choice == "yes":
+                    print("Project submitted.")
+                    pass
+                    # check proposal.md
+                elif choice == "no":
+                    print("Aborting.")
+                    return
 
 
 
