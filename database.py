@@ -207,6 +207,7 @@ class User:
                 project.update({"Member2": "None"})
                 project.update({"Advisor": "None"})
                 project.update({"Status": "Awaiting members"})
+                project.update({"Details": "first draft"})
                 self.database.search("Projects.csv").insert([project])
                 print(self.database.search("Projects.csv"))
             elif action == "2":
@@ -311,8 +312,19 @@ class User:
                     print(self.database.search("member_request.csv").table)
                     print()
                     print(self.database.search("Projects.csv").table)
-                elif action == "4":
-                    pass
+            elif action == "4":
+                print("Updating details. Enter esc to exit.")
+                for project in self.database.search("Projects.csv").table:
+                    if str(self.id) in project["Lead"]:
+                        details = input("Enter details: ")
+                        if details == "esc":
+                            return
+                        project["Details"] = details
+                        print(project)
+                        return
+                print("Project not found have you created one yet?")
+
+
 
 if __name__ == "__main__":
     # test cases
@@ -326,7 +338,7 @@ if __name__ == "__main__":
     # print(Table("persons", csv_Reader("persons.csv").read())
     #       .update(0,"ID", 1))
     db = Database()
-    x =Table("persons.csv", csv_Reader("persons.csv").read())
+    x = Table("persons.csv", csv_Reader("persons.csv").read())
     db.insert(x)
     y = Table("Advisor_request.csv", csv_Reader("Advisor_request.csv").read())
     db.insert(y)
