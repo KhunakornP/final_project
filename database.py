@@ -110,6 +110,11 @@ class User:
             if i["ID"] == str(ID):
                 return i
 
+    def find_username(self, ID):
+        for i in self.database.search("login.csv").table:
+            if i["ID"] == str(ID):
+                return i["username"]
+
     def help(self):
         if self.clearance == 1:
             print("1. Update the database.")
@@ -184,6 +189,10 @@ class User:
         elif self.clearance == 3:
             project = {}
             if action == "1":
+                for project in self.database.search("Projects.csv").table:
+                    if str(self.id) in project["Lead"]:
+                        print("You already have a project.")
+                        return
                 if len(self.database.search("Projects.csv").table) is None:
                     project.update({"ID" : "0001"})
                 else:
@@ -194,8 +203,8 @@ class User:
                 title = input("Enter project title: ")
                 project.update({"Title": title})
                 project.update(({"Lead": f"{self.username} : {self.id}"}))
-                project.update({"Member 1": "None"})
-                project.update({"Member 2": "None"})
+                project.update({"Member1": "None"})
+                project.update({"Member2": "None"})
                 project.update({"Advisor": "None"})
                 project.update({"Status": "Awaiting members"})
                 self.database.search("Projects.csv").insert([project])
@@ -226,6 +235,7 @@ class User:
                     if not member_flag:
                         print("ID is invalid.")
                         return
+                    member_flag = False
                     request = {}
                     if len(self.database.search("Projects.csv").table) == 0:
                         print("You do not have a project. Create one first.")
@@ -238,34 +248,70 @@ class User:
                             request.update({"Date": time.asctime(time.localtime())})
                             self.database.search("member_request.csv").insert([request])
                             print(self.database.search("member_request.csv"))
+                            member_flag = True
                             break
-                        print("You do not have a project. Create 1 first.")
+                    if not member_flag:
+                        print("You do not have a project. Create one first.")
                         return
                 elif choice == "2":
+                    user_ids = []
                     count = 1
+                    buffer = 0
                     print("Showing Accepted requests.")
                     for request in self.database.search("member_request.csv").table:
                         for project in self.database.search("Projects.csv").table:
                             if request["Project ID"] in project["ID"]:
                                 if str(self.id) in project["Lead"]:
-                                    print(f"{count}. "
-                                          f"{self.find_user(request['Member'])['first']} "
-                                          f"{self.find_user(request['Member'])['last']} "
-                                          f"ID: {request['Member']}")
-                                    count += 1
+                                    if request["Response"] == "Awaiting response":
+                                        print(f"{count}. "
+                                              f"{self.find_user(request['Member'])['first']} "
+                                              f"{self.find_user(request['Member'])['last']} "
+                                              f"ID: {request['Member']}")
+                                        user_ids.append(request['Member'])
+                                        request["Response"] = "pending"
+                                        count += 1
+                                        continue
+                                    buffer += 1
                     if count == 1:
                         print("No pending request found.")
                         return
-                    request = input("Enter a request number to approve or"
-                                    "deny: ")
+                    print(self.database.search("member_request.csv").table)
+                    request = input("Enter a request number to "
+                                    "approve or deny: ")
                     while int(request) not in range(count+1):
                         print("Invalid request number.")
-                        request = input("Enter a request number to approve or"
-                                        "deny: ")
+                        request = input("Enter a request number to "
+                                        "approve or deny: ")
                     response = input("Approve or deny: ")
+                    not_full = False
+                    for project in self.database.search("Projects.csv").table:
+                        if str(self.id) in project["Lead"]:
+                            if project["Member1"] == "None":
+                                project["Member1"] = (f"{self.find_username(user_ids[int(request)-1])}"
+                                                      f" : {user_ids[int(request)-1]}")
+                                not_full = True
+                                break
+                            elif project["Member2"] == "None":
+                                project["Member2"] = (f"{self.find_username(user_ids[int(request)-1])}"
+                                                      f" : {user_ids[int(request)-1]}")
+                                not_full = True
+                                break
+                    if not not_full:
+                        print("The project is full.")
+                        return
+                    for i in self.database.search("member_request.csv").table:
+                        if i["Response"] == "pending":
+                            i["Response"] = "Awaiting response"
                     self.database.search("member_request.csv").table[
-                        int(request) - 1].update({"Response": response})
+                        int(request) - 1 + buffer].update({"Response": response})
+                    for project in self.database.search("Projects.csv").table:
+                        if str(self.id) in project["Lead"]:
+                            if project["Member1"] != "None" and project["Member2"] != "None":
+                                project["Status"] = "Awaiting advisor"
                     print(self.database.search("member_request.csv").table)
+                    print()
+                    print(self.database.search("Projects.csv").table)
+
 
 
 
@@ -293,6 +339,8 @@ if __name__ == "__main__":
     db.insert(z)
     a = Table("member_request.csv", csv_Reader("member_request.csv").read())
     db.insert(a)
+    b = Table("login.csv", csv_Reader("login.csv").read())
+    db.insert(b)
     u1 = User(3, "Karim.B",db, '2472659')
     u1.manage()
 
