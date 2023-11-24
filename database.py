@@ -104,6 +104,7 @@ class User:
             print()
             self.help()
             action = input("Enter action: ")
+        return False
 
     def find_user(self, ID):
         for i in self.database.search("persons.csv").table:
@@ -427,6 +428,19 @@ class User:
                         if user["ID"] == str(self.id):
                             self.clearance = 3
                             user["type"] = "lead"
+        elif self.clearance == 5:
+            print("Updating details. Enter esc to exit.")
+            for project in self.database.search("Projects.csv").table:
+                print(self.id)
+                print(project["Member1"])
+                if (str(self.id) in project["Member1"] or
+                        str(self.id) in project['Member2']):
+                    details = input("Enter details: ")
+                    if details == "esc":
+                        return
+                    project["Details"] = details
+                    print(project)
+                    return
 
 
 if __name__ == "__main__":
@@ -451,7 +465,7 @@ if __name__ == "__main__":
     db.insert(a)
     b = Table("login.csv", csv_Reader("login.csv").read())
     db.insert(b)
-    u1 = User(4, "Hugo.L",db, '2472659')
+    u1 = User(5, "Hugo.L",db, '2472659')
     u1.manage()
 
     # table for clearance
