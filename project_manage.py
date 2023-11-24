@@ -4,15 +4,15 @@ import csv
 
 
 def initializing():
-    global db
     db = database.Database()
     for files in os.listdir():
         if files.endswith(".csv"):
-            data = database.Table(files, database.csv_Reader(files).read())
+            data = database.Table(files, database.CSV_Reader(files).read())
             print(data)
             db.insert(data)
+    return db
 
-def login():
+def login(db):
     user = input("Enter username: ")
     password = input("Enter password: ")
     for users in db.search("login.csv").table:
@@ -21,40 +21,47 @@ def login():
                 return [users["ID"], users["role"]]
     return
 
-def exit():
+
+def exit(db):
     for tables in db.database:
-        keys = tables.table[0].keys()
-        myFile = open(tables.table_name, 'w')
-        writer = csv.DictWriter(myFile, fieldnames= keys)
-        writer.writeheader()
-        writer.writerows(tables.table)
-        myFile.close()
-        myFile = open(tables.table_name, 'r')
-        print(f"The content of {tables.table_name} is:")
-        print(myFile.read())
-        myFile.close()
+        if len(tables.table) != 0:
+            keys = tables.table[0].keys()
+            myFile = open(tables.table_name, 'w')
+            writer = csv.DictWriter(myFile, fieldnames= keys)
+            writer.writeheader()
+            writer.writerows(tables.table)
+            myFile.close()
+            myFile = open(tables.table_name, 'r')
+            print(f"The content of {tables.table_name} is:")
+            print(myFile.read())
+            myFile.close()
 
 
-initializing()
+data_base = initializing()
+val = login(data_base)
+while val is None:
+    print("Username or password is invalid.")
+    val = login(data_base)
 session = True
 while session:
-    val = login()
-    while val is None:
-        print("Username or password is invalid.")
-        val = login()
     if val[1] == 'admin':
-        pass
+        user = database.User(1, val[0], data_base)
+        session = user.manage()
     elif val[1] == 'student':
-        pass
+        user = database.User(4, val[0], data_base)
+        session = user.manage()
     elif val[1] == 'member':
-        pass
+        user = database.User(5, val[0], data_base)
+        session = user.manage()
     elif val[1] == 'lead':
-        pass
+        user = database.User(3, val[0], data_base)
+        session = user.manage()
     elif val[1] == 'faculty':
-        pass
+        user = database.User(2, val[0], data_base)
+        session = user.manage()
     elif val[1] == 'advisor':
-        pass
+        user = database.User(2, val[0], data_base)
+        session = user.manage()
 
 
-# once everyhthing is done, make a call to the exit function
-exit()
+# exit(data_base)

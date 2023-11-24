@@ -3,7 +3,7 @@ import copy
 import time
 
 
-class csv_Reader:
+class CSV_Reader:
     def __init__(self, name):
         self.data = []
         self.name = name
@@ -32,7 +32,7 @@ class Database:
                 return table
         return
 
-# add in code for a Table class
+
 class Table:
     def __init__(self, name, table):
         self.table_name = name
@@ -87,12 +87,12 @@ class Table:
 
 
 class User:
-    def __init__(self, rank, user, db, ID):
+    def __init__(self, rank, user_id, data_base):
         self.clearance = rank
-        self.username = user
         self.advisor = False
-        self.database = db
-        self.id = ID
+        self.database = data_base
+        self.id = user_id
+        self.username = self.find_username(self.id)
 
     def manage(self):
         print(f"Welcome {self.username} here are your available actions.")
@@ -106,14 +106,14 @@ class User:
             action = input("Enter action: ")
         return False
 
-    def find_user(self, ID):
+    def find_user(self, user_id):
         for i in self.database.search("persons.csv").table:
-            if i["ID"] == str(ID):
+            if i["ID"] == str(user_id):
                 return i
 
-    def find_username(self, ID):
+    def find_username(self, user_id):
         for i in self.database.search("login.csv").table:
-            if i["ID"] == str(ID):
+            if i["ID"] == str(user_id):
                 return i["username"]
 
     def help(self):
@@ -153,7 +153,7 @@ class User:
             data = input("Enter data: ")
             print()
             while table != "esc" and key != "esc" and data != "esc":
-                self.database.search(table).update(index, key,data)
+                self.database.search(table).update(index, key, data)
                 table = input("Enter table to update: ")
                 index = int(input("Enter index: "))
                 key = input("Enter key: ")
@@ -195,7 +195,7 @@ class User:
                         print("You already have a project.")
                         return
                 if len(self.database.search("Projects.csv").table) is None:
-                    project.update({"ID" : "0001"})
+                    project.update({"ID": "0001"})
                 else:
                     uid = str(len(self.database.search("Projects.csv").table) + 1)
                     while len(uid) < 4:
@@ -225,13 +225,13 @@ class User:
                 if choice == "1":
                     member_flag = False
                     print("Inviting students to project.")
-                    ID = input("Enter student ID: ")
+                    stu_id = input("Enter student ID: ")
                     for member in self.database.search("Projects.csv").table:
-                        if ID in member["ID"]:
+                        if stu_id in member["ID"]:
                             print("Student is already in a project.")
                             return
                     for students in self.database.search("persons.csv").table:
-                        if ID in students["ID"]:
+                        if stu_id in students["ID"]:
                             member_flag = True
                             break
                     if not member_flag:
@@ -245,7 +245,7 @@ class User:
                     for projects in self.database.search("Projects.csv").table:
                         if str(self.id) in projects["Lead"]:
                             request.update({"Project ID": projects["ID"]})
-                            request.update({"Member": ID})
+                            request.update({"Member": stu_id})
                             request.update({"Response": "Awaiting response"})
                             request.update({"Date": time.asctime(time.localtime())})
                             self.database.search("member_request.csv").insert([request])
@@ -445,27 +445,31 @@ class User:
 
 if __name__ == "__main__":
     # test cases
-    # print(csv_Reader("persons.csv").read())
-    # print()
-    # print(Table("persons", csv_Reader("persons.csv").read()))
-    # print()
-    # print(Table("persons", csv_Reader("persons.csv").read())
-    #       .insert([{'friend': 'joe'}, {'animal' : "duck"}]))
-    # print()
-    # print(Table("persons", csv_Reader("persons.csv").read())
-    #       .update(0,"ID", 1))
+    print(CSV_Reader("persons.csv").read())
+    print()
+    print(Table("persons", CSV_Reader("persons.csv").read()))
+    print()
+    print(Table("persons", CSV_Reader("persons.csv").read())
+          .insert([{'friend': 'joe'}, {'animal': "duck"}]))
+    print()
+    print(Table("persons", CSV_Reader("persons.csv").read())
+          .update(0, "ID", 1))
     db = Database()
-    x = Table("persons.csv", csv_Reader("persons.csv").read())
+    x = Table("persons.csv", CSV_Reader("persons.csv").read())
     db.insert(x)
-    y = Table("Advisor_request.csv", csv_Reader("Advisor_request.csv").read())
+    y = Table("Advisor_request.csv",
+              CSV_Reader("Advisor_request.csv").read())
     db.insert(y)
-    z = Table("Projects.csv", csv_Reader("Projects.csv").read())
+    z = Table("Projects.csv",
+              CSV_Reader("Projects.csv").read())
     db.insert(z)
-    a = Table("member_request.csv", csv_Reader("member_request.csv").read())
+    a = Table("member_request.csv",
+              CSV_Reader("member_request.csv").read())
     db.insert(a)
-    b = Table("login.csv", csv_Reader("login.csv").read())
+    b = Table("login.csv", CSV_Reader("login.csv").read())
     db.insert(b)
-    u1 = User(5, "Hugo.L",db, '2472659')
+    clearance = int(input("Enter your clearance: "))
+    u1 = User(clearance, '2472659', db)
     u1.manage()
 
     # table for clearance
