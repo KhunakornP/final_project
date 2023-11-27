@@ -207,7 +207,7 @@ class User:
                 project.update({"Member1": "None"})
                 project.update({"Member2": "None"})
                 project.update({"Advisor": "None"})
-                project.update({"Status": "Awaiting members"})
+                project.update({"Status": "Awaiting revision"})
                 project.update({"Details": "first draft"})
                 self.database.search("Projects.csv").insert([project])
                 print(self.database.search("Projects.csv"))

@@ -21,7 +21,7 @@ There are currently 5 roles and each role can do the following
 ### Admins:
 
 - Can edit the database using various functions.
-- Note: such functions have yet to be implemented as of the current version
+- Note: Most functions have yet to be implemented as of the current version
 
 ### Faculty
 
