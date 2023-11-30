@@ -80,9 +80,10 @@ class Table:
 
     def update_table(self, ID_value, key, value):
         for data in self.table:
-            if data["ID"] == ID_value:
+            if data["ID"] == str(ID_value):
                 data[key] = value
-        return self.table
+            return data
+        return
 
     def __str__(self):
         return self.table_name + ':' + str(self.table)
@@ -146,22 +147,30 @@ class User:
     def actions(self, action):
         if self.clearance == 1:
             print("Updating database to quit enter esc: ")
-            print("All Tables: ")
-            for tables in self.database.database:
-                print(tables.table_name)
-            table = input("Enter table to update: ")
-            ID = int(input("Enter id: "))
-            key = input("Enter key: ")
-            data = input("Enter data: ")
-            print()
-            while table != "esc" and key != "esc" and data != "esc":
-                self.database.search(table).update(ID, key, data)
-                table = input("Enter table to update: ")
-                ID = int(input("Enter id: "))
-                key = input("Enter key: ")
-                data = input("Enter data: ")
+            while True:
+                print("All Tables: ")
+                for tables in self.database.database:
+                    print(tables.table_name)
                 print()
-            print(self.database.search(table))
+                table = input("Enter table to update: ")
+                if table == "esc":
+                    break
+                ID = input("Enter id: ")
+                if ID == "esc":
+                    break
+                while not ID.isdigit():
+                    print("id is not an int")
+                    ID = input("Enter id: ")
+                    if ID == "esc":
+                        break
+                key = input("Enter key: ")
+                if key == "esc":
+                    break
+                data = input("Enter data: ")
+                if data == "esc":
+                    break
+                print()
+                self.database.search(table).update_table(ID, key, data)
         elif self.clearance == 2:
             if action == "1":
                 for request in self.database.search("Advisor_request.csv").table:
