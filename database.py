@@ -78,8 +78,10 @@ class Table:
             temps.append(dict_temp)
         return temps
 
-    def update(self, index, key, value):
-        self.table[index][key] = value
+    def update_table(self, ID_value, key, value):
+        for data in self.table:
+            if data["ID"] == ID_value:
+                data[key] = value
         return self.table
 
     def __str__(self):
@@ -148,14 +150,14 @@ class User:
             for tables in self.database.database:
                 print(tables.table_name)
             table = input("Enter table to update: ")
-            index = int(input("Enter index: "))
+            ID = int(input("Enter id: "))
             key = input("Enter key: ")
             data = input("Enter data: ")
             print()
             while table != "esc" and key != "esc" and data != "esc":
-                self.database.search(table).update(index, key, data)
+                self.database.search(table).update(ID, key, data)
                 table = input("Enter table to update: ")
-                index = int(input("Enter index: "))
+                ID = int(input("Enter id: "))
                 key = input("Enter key: ")
                 data = input("Enter data: ")
                 print()
@@ -165,18 +167,18 @@ class User:
                 for request in self.database.search("Advisor_request.csv").table:
                     print("Your current requests.")
                     if (request["Advisor"].split())[0] in self.username:
-                        print(f"Project ID: {request['Project ID']}\n"
+                        print(f"Project ID: {request['ID']}\n"
                               f"Requesting {request['Advisor']}")
                         print()
             elif action == "2":
                 print("Select request to confirm.")
                 for request in self.database.search("Advisor_request.csv").table:
                     if (request["Advisor"].split()[0]) in self.username:
-                        print(f"Project ID: {request['Project ID']}")
+                        print(f"Project ID: {request['ID']}")
                 project_id = input("Enter id: ")
                 response = input("Enter response: ")
                 for request in self.database.search("Advisor_request.csv").table:
-                    if request["Project ID"] == project_id:
+                    if request["ID"] == project_id:
                         request["Response"] = response
                         request["Date of response"] = time.asctime(time.localtime())
                         print(self.database.search("Advisor_request.csv"))
@@ -244,7 +246,7 @@ class User:
                         return
                     for projects in self.database.search("Projects.csv").table:
                         if str(self.id) in projects["Lead"]:
-                            request.update({"Project ID": projects["ID"]})
+                            request.update({"ID": projects["ID"]})
                             request.update({"Member": stu_id})
                             request.update({"Response": "Awaiting response"})
                             request.update({"Date": time.asctime(time.localtime())})
@@ -262,7 +264,7 @@ class User:
                     print("Showing Accepted requests.")
                     for request in self.database.search("member_request.csv").table:
                         for project in self.database.search("Projects.csv").table:
-                            if request["Project ID"] in project["ID"]:
+                            if request["ID"] in project["ID"]:
                                 if str(self.id) in project["Lead"]:
                                     if request["Response"] == "Awaiting confirmation":
                                         print(f"{count}. "
@@ -348,7 +350,7 @@ class User:
                 request = {}
                 for projects in self.database.search("Projects.csv").table:
                     if str(self.id) in projects["Lead"]:
-                        request.update({"Project ID": projects["ID"]})
+                        request.update({"ID": projects["ID"]})
                         request.update({"Advisor":
                                         f"{advisor_list[int(advisor)-1]['first']} "
                                         f"{advisor_list[int(advisor)-1]['last']}"}
@@ -387,8 +389,8 @@ class User:
                 for inv in self.database.search("member_request.csv").table:
                     if str(self.id) == inv["Member"]:
                         for projects in self.database.search("Projects.csv").table:
-                            if projects["ID"] == inv['Project ID']:
-                                print(f"Project ID: {inv['Project ID']} "
+                            if projects["ID"] == inv['ID']:
+                                print(f"Project ID: {inv['ID']} "
                                       f"Title: {projects['Title']}")
                                 check = True
                 if not check:
@@ -399,8 +401,8 @@ class User:
                 for inv in self.database.search("member_request.csv").table:
                     if str(self.id) == inv["Member"]:
                         if inv["Response"] == "Awaiting response":
-                            print(f"Project ID: {inv['Project ID']}")
-                            proj_list.append(inv["Project ID"])
+                            print(f"Project ID: {inv['ID']}")
+                            proj_list.append(inv["ID"])
                             continue
                     print("No projects found.")
                     return
@@ -414,7 +416,7 @@ class User:
                         return
                 for inv in self.database.search("member_request.csv").table:
                     if str(self.id) == inv["Member"]:
-                        if projects == inv["Project ID"]:
+                        if projects == inv["ID"]:
                             inv["Response"] = "Awaiting confirmation"
                 print(self.database.search("member_request.csv"))
             elif action == "3":
@@ -452,8 +454,8 @@ if __name__ == "__main__":
     print(Table("persons", CSV_Reader("persons.csv").read())
           .insert([{'friend': 'joe'}, {'animal': "duck"}]))
     print()
-    print(Table("persons", CSV_Reader("persons.csv").read())
-          .update(0, "ID", 1))
+    # print(Table("persons", CSV_Reader("persons.csv").read())
+    #       .update(0, "ID", 1))
     db = Database()
     x = Table("persons.csv", CSV_Reader("persons.csv").read())
     db.insert(x)
