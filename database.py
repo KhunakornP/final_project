@@ -85,6 +85,14 @@ class Table:
             return data
         return
 
+    def update_dict(self, ID_value):
+        for data in self.table:
+            if data["ID"] == str(ID_value):
+                for keys in data.keys():
+                    data[keys] = input(f"Enter new {keys}: ")
+                return data
+        return
+
     def __str__(self):
         return self.table_name + ':' + str(self.table)
 
@@ -479,6 +487,8 @@ if __name__ == "__main__":
     db.insert(a)
     b = Table("login.csv", CSV_Reader("login.csv").read())
     db.insert(b)
+    x = b.update_dict(9898118)
+    print(x)
     clearance = int(input("Enter your clearance: "))
     u1 = User(clearance, '2472659', db)
     u1.manage()
