@@ -109,8 +109,8 @@ class User:
         print(f"Welcome {self.username} here are your available actions.")
         self.help()
         action = input("Enter action: ")
-        print()
         while action != "0":
+            print()
             self.actions(action)
             print()
             self.help()
@@ -181,17 +181,28 @@ class User:
                 self.database.search(table).update_table(ID, key, data)
         elif self.clearance == 2:
             if action == "1":
+                if len(self.database.search("Advisor_request.csv").table) < 1:
+                    print("No requests found.")
+                    return
                 for request in self.database.search("Advisor_request.csv").table:
                     print("Your current requests.")
                     if (request["Advisor"].split())[0] in self.username:
                         print(f"Project ID: {request['ID']}\n"
                               f"Requesting {request['Advisor']}")
                         print()
+                    else:
+                        print("No requests found.")
             elif action == "2":
+                if len(self.database.search("Advisor_request.csv").table) < 1:
+                    print("No requests found.")
+                    return
                 print("Select request to confirm.")
                 for request in self.database.search("Advisor_request.csv").table:
                     if (request["Advisor"].split()[0]) in self.username:
                         print(f"Project ID: {request['ID']}")
+                    else:
+                        print("No requests found.")
+                        return
                 project_id = input("Enter id: ")
                 response = input("Enter response: ")
                 for request in self.database.search("Advisor_request.csv").table:
@@ -487,8 +498,8 @@ if __name__ == "__main__":
     db.insert(a)
     b = Table("login.csv", CSV_Reader("login.csv").read())
     db.insert(b)
-    x = b.update_dict(9898118)
-    print(x)
+    # x = b.update_dict(9898118)
+    # print(x)
     clearance = int(input("Enter your clearance: "))
     u1 = User(clearance, '2472659', db)
     u1.manage()
