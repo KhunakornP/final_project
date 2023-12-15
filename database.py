@@ -3,7 +3,7 @@ import copy
 import time
 
 
-class CSV_Reader:
+class CsvReader:
     def __init__(self, name):
         self.data = []
         self.name = name
@@ -78,16 +78,16 @@ class Table:
             temps.append(dict_temp)
         return temps
 
-    def update_table(self, ID_value, key, value):
+    def update_table(self, id_value, key, value):
         for data in self.table:
-            if data["ID"] == str(ID_value):
+            if data["ID"] == str(id_value):
                 data[key] = value
-            return data
+                return data
         return
 
-    def update_dict(self, ID_value):
+    def update_dict(self, id_value):
         for data in self.table:
-            if data["ID"] == str(ID_value):
+            if data["ID"] == str(id_value):
                 for keys in data.keys():
                     data[keys] = input(f"Enter new {keys}: ")
                 return data
@@ -129,7 +129,8 @@ class User:
 
     def help(self):
         if self.clearance == 1:
-            print("1. Update the database.")
+            print("1. Update a value.")
+            print("2. Update a dictionary.")
         elif self.clearance == 2:
             print("1. See advisor requests.")
             print("2. Respond to requests.")
@@ -154,37 +155,56 @@ class User:
 
     def actions(self, action):
         if self.clearance == 1:
-            print("Updating database to quit enter esc: ")
-            while True:
-                print("All Tables: ")
-                for tables in self.database.database:
-                    print(tables.table_name)
-                print()
-                table = input("Enter table to update: ")
-                if table == "esc":
-                    break
-                ID = input("Enter id: ")
-                if ID == "esc":
-                    break
-                while not ID.isdigit():
-                    print("id is not an int")
-                    ID = input("Enter id: ")
-                    if ID == "esc":
+            if action == "1":
+                print("Updating database to quit enter esc: ")
+                while True:
+                    print("All Tables: ")
+                    for tables in self.database.database:
+                        print(tables.table_name)
+                    print()
+                    table = input("Enter table to update: ")
+                    if table == "esc":
                         break
-                key = input("Enter key: ")
-                if key == "esc":
-                    break
-                data = input("Enter data: ")
-                if data == "esc":
-                    break
-                print()
-                self.database.search(table).update_table(ID, key, data)
+                    id_value = input("Enter id: ")
+                    if id_value == "esc":
+                        break
+                    while not id_value.isdigit():
+                        print("id is not an int")
+                        id_value = input("Enter id: ")
+                        if id_value == "esc":
+                            break
+                    key = input("Enter key: ")
+                    if key == "esc":
+                        break
+                    data = input("Enter data: ")
+                    if data == "esc":
+                        break
+                    print()
+                    result \
+                        = (self.database.
+                           search(table).update_table(id_value, key, data))
+                    print(result)
+            elif action == "2":
+                print("Updating database to quit enter esc: ")
+                while True:
+                    print("All Tables: ")
+                    for tables in self.database.database:
+                        print(tables.table_name)
+                    print()
+                    table = input("Enter table to update: ")
+                    if table == "esc":
+                        break
+                    id_value = input("Enter id to update: ")
+                    result = self.database.search(
+                        table).update_dict(id_value)
+                    print(result)
         elif self.clearance == 2:
             if action == "1":
                 if len(self.database.search("Advisor_request.csv").table) < 1:
                     print("No requests found.")
                     return
-                for request in self.database.search("Advisor_request.csv").table:
+                for request in (
+                        self.database.search("Advisor_request.csv").table):
                     print("Your current requests.")
                     if (request["Advisor"].split())[0] in self.username:
                         print(f"Project ID: {request['ID']}\n"
@@ -197,7 +217,8 @@ class User:
                     print("No requests found.")
                     return
                 print("Select request to confirm.")
-                for request in self.database.search("Advisor_request.csv").table:
+                for request in (
+                        self.database.search("Advisor_request.csv").table):
                     if (request["Advisor"].split()[0]) in self.username:
                         print(f"Project ID: {request['ID']}")
                     else:
@@ -205,16 +226,22 @@ class User:
                         return
                 project_id = input("Enter id: ")
                 response = input("Enter response: ")
-                for request in self.database.search("Advisor_request.csv").table:
+                for request in (
+                        self.database.search("Advisor_request.csv").table):
                     if request["ID"] == project_id:
                         request["Response"] = response
-                        request["Date of response"] = time.asctime(time.localtime())
+                        request["Date of response"] \
+                            = time.asctime(time.localtime())
                         print(self.database.search("Advisor_request.csv"))
             elif action == "3":
                 print("List of projects:")
+                if len(self.database.search("Projects.csv").table) == 0:
+                    print("No projects found.")
                 for projects in self.database.search("Projects.csv").table:
                     print(projects)
             elif action == "4":
+                pass
+            elif action == "5":
                 pass
             # evaluation will be implemented in the future
         elif self.clearance == 3:
@@ -227,7 +254,8 @@ class User:
                 if len(self.database.search("Projects.csv").table) is None:
                     project.update({"ID": "0001"})
                 else:
-                    uid = str(len(self.database.search("Projects.csv").table) + 1)
+                    uid = str(len(
+                        self.database.search("Projects.csv").table) + 1)
                     while len(uid) < 4:
                         uid = "0" + uid
                     project.update({"ID": uid})
@@ -244,7 +272,8 @@ class User:
             elif action == "2":
                 print("Showing students without a group.")
                 for students in self.database.search("persons.csv").table:
-                    if students["ID"] not in self.database.search("Projects.csv").table:
+                    if (students["ID"] not in
+                            self.database.search("Projects.csv").table):
                         if students["type"] == "student":
                             print(f"Name: {students['first']} "
                                   f"{students['last']} ID: {students['ID']}")
@@ -262,8 +291,9 @@ class User:
                             return
                     for students in self.database.search("persons.csv").table:
                         if stu_id in students["ID"]:
-                            member_flag = True
-                            break
+                            if students["type"] == "student":
+                                member_flag = True
+                                break
                     if not member_flag:
                         print("ID is invalid.")
                         return
@@ -277,8 +307,10 @@ class User:
                             request.update({"ID": projects["ID"]})
                             request.update({"Member": stu_id})
                             request.update({"Response": "Awaiting response"})
-                            request.update({"Date": time.asctime(time.localtime())})
-                            self.database.search("member_request.csv").insert([request])
+                            request.update(
+                                {"Date": time.asctime(time.localtime())})
+                            self.database.search(
+                                "member_request.csv").insert([request])
                             print(self.database.search("member_request.csv"))
                             member_flag = True
                             break
@@ -290,11 +322,14 @@ class User:
                     count = 1
                     buffer = 0
                     print("Showing Accepted requests.")
-                    for request in self.database.search("member_request.csv").table:
-                        for project in self.database.search("Projects.csv").table:
+                    for request in \
+                            self.database.search("member_request.csv").table:
+                        for project in \
+                                self.database.search("Projects.csv").table:
                             if request["ID"] in project["ID"]:
                                 if str(self.id) in project["Lead"]:
-                                    if request["Response"] == "Awaiting confirmation":
+                                    if (request["Response"]
+                                            == "Awaiting confirmation"):
                                         print(f"{count}. "
                                               f"{self.find_user(request['Member'])['first']} "
                                               f"{self.find_user(request['Member'])['last']} "
@@ -310,7 +345,7 @@ class User:
                     print(self.database.search("member_request.csv").table)
                     request = input("Enter a request number to "
                                     "approve or deny: ")
-                    while int(request) not in range(count+1):
+                    while int(request) not in range(count + 1):
                         print("Invalid request number.")
                         request = input("Enter a request number to "
                                         "approve or deny: ")
@@ -319,13 +354,15 @@ class User:
                     for project in self.database.search("Projects.csv").table:
                         if str(self.id) in project["Lead"]:
                             if project["Member1"] == "None":
-                                project["Member1"] = (f"{self.find_username(user_ids[int(request)-1])}"
-                                                      f" : {user_ids[int(request)-1]}")
+                                project["Member1"] = (
+                                    f"{self.find_username(user_ids[int(request) - 1])}"
+                                    f" : {user_ids[int(request) - 1]}")
                                 not_full = True
                                 break
                             elif project["Member2"] == "None":
-                                project["Member2"] = (f"{self.find_username(user_ids[int(request)-1])}"
-                                                      f" : {user_ids[int(request)-1]}")
+                                project["Member2"] = (
+                                    f"{self.find_username(user_ids[int(request) - 1])}"
+                                    f" : {user_ids[int(request) - 1]}")
                                 not_full = True
                                 break
                     if not not_full:
@@ -335,10 +372,12 @@ class User:
                         if i["Response"] == "pending":
                             i["Response"] = "Awaiting confirmation"
                     self.database.search("member_request.csv").table[
-                        int(request) - 1 + buffer].update({"Response": response})
+                        int(request) - 1 + buffer].update(
+                        {"Response": response})
                     for project in self.database.search("Projects.csv").table:
                         if str(self.id) in project["Lead"]:
-                            if project["Member1"] != "None" and project["Member2"] != "None":
+                            if (project["Member1"] != "None"
+                                    and project["Member2"] != "None"):
                                 project["Status"] = "Awaiting advisor"
                     print(self.database.search("member_request.csv").table)
                     print()
@@ -368,7 +407,8 @@ class User:
                 for advisors in self.database.search("persons.csv").table:
                     if advisors["type"] == "faculty":
                         advisor_list.append(advisors)
-                        print(f"{count}. {advisors['first']} {advisors['last']}")
+                        print(f"{count}. {advisors['first']} "
+                              f"{advisors['last']}")
                         count += 1
                 print("Enter a number from the list to invite an advisor.")
                 advisor = input("Enter number: ")
@@ -379,9 +419,8 @@ class User:
                 for projects in self.database.search("Projects.csv").table:
                     if str(self.id) in projects["Lead"]:
                         request.update({"ID": projects["ID"]})
-                        request.update({"Advisor":
-                                        f"{advisor_list[int(advisor)-1]['first']} "
-                                        f"{advisor_list[int(advisor)-1]['last']}"}
+                        request.update({"Advisor": f"{advisor_list[int(advisor) - 1]['first']} "
+                                                   f"{advisor_list[int(advisor) - 1]['last']}"}
                                        )
                         request.update({"Response": "Awaiting response"})
                         request.update(
@@ -416,7 +455,8 @@ class User:
                 print("Your project invitations.")
                 for inv in self.database.search("member_request.csv").table:
                     if str(self.id) == inv["Member"]:
-                        for projects in self.database.search("Projects.csv").table:
+                        for projects in (
+                                self.database.search("Projects.csv").table):
                             if projects["ID"] == inv['ID']:
                                 print(f"Project ID: {inv['ID']} "
                                       f"Title: {projects['Title']}")
@@ -426,6 +466,9 @@ class User:
             elif action == "2":
                 proj_list = []
                 print("Eligible projects to join.")
+                if len(self.database.search("member_request.csv").table) == 0:
+                    print("No eligible projects to join.")
+                    return
                 for inv in self.database.search("member_request.csv").table:
                     if str(self.id) == inv["Member"]:
                         if inv["Response"] == "Awaiting response":
@@ -475,31 +518,31 @@ class User:
 
 if __name__ == "__main__":
     # test cases
-    print(CSV_Reader("persons.csv").read())
+    print(CsvReader("persons.csv").read())
     print()
-    print(Table("persons", CSV_Reader("persons.csv").read()))
+    print(Table("persons", CsvReader("persons.csv").read()))
     print()
-    print(Table("persons", CSV_Reader("persons.csv").read())
+    print(Table("persons", CsvReader("persons.csv").read())
           .insert([{'friend': 'joe'}, {'animal': "duck"}]))
     print()
     # print(Table("persons", CSV_Reader("persons.csv").read())
     #       .update(0, "ID", 1))
     db = Database()
-    x = Table("persons.csv", CSV_Reader("persons.csv").read())
+    x = Table("persons.csv", CsvReader("persons.csv").read())
     db.insert(x)
     y = Table("Advisor_request.csv",
-              CSV_Reader("Advisor_request.csv").read())
+              CsvReader("Advisor_request.csv").read())
     db.insert(y)
     z = Table("Projects.csv",
-              CSV_Reader("Projects.csv").read())
+              CsvReader("Projects.csv").read())
     db.insert(z)
     a = Table("member_request.csv",
-              CSV_Reader("member_request.csv").read())
+              CsvReader("member_request.csv").read())
     db.insert(a)
-    b = Table("login.csv", CSV_Reader("login.csv").read())
+    b = Table("login.csv", CsvReader("login.csv").read())
     db.insert(b)
-    # x = b.update_dict(9898118)
-    # print(x)
+    x = b.update_table(9898118, "ID", "Number")
+    print(x)
     clearance = int(input("Enter your clearance: "))
     u1 = User(clearance, '2472659', db)
     u1.manage()

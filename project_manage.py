@@ -7,7 +7,7 @@ def initializing():
     db = database.Database()
     for files in os.listdir():
         if files.endswith(".csv"):
-            data = database.Table(files, database.CSV_Reader(files).read())
+            data = database.Table(files, database.CsvReader(files).read())
             print(data)
             db.insert(data)
     return db
