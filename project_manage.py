@@ -5,10 +5,11 @@ import csv
 
 def initializing():
     db = database.Database()
+    print("Read files:")
     for files in os.listdir():
         if files.endswith(".csv"):
             data = database.Table(files, database.CsvReader(files).read())
-            print(data)
+            print(files)
             db.insert(data)
     return db
 
@@ -64,4 +65,4 @@ while session:
         session = user.manage()
 
 
-# exit(data_base)
+exit(data_base)

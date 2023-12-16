@@ -261,7 +261,7 @@ class User:
                     project.update({"ID": uid})
                 title = input("Enter project title: ")
                 project.update({"Title": title})
-                project.update(({"Lead": f"{self.username} : {self.id}"}))
+                project.update(({"Lead": f"{self.id}"}))
                 project.update({"Member1": "None"})
                 project.update({"Member2": "None"})
                 project.update({"Advisor": "None"})
@@ -309,16 +309,24 @@ class User:
                             request.update({"Response": "Awaiting response"})
                             request.update(
                                 {"Date": time.asctime(time.localtime())})
-                            self.database.search(
-                                "member_request.csv").insert([request])
-                            print(self.database.search("member_request.csv"))
                             member_flag = True
                             break
                     if not member_flag:
                         print("You do not have a project. Create one first.")
                         return
+                    else:
+                        for requests in self.database.search(
+                                "member_request.csv").table:
+                            if request["ID"] in requests["ID"]:
+                                if request["Member"] in requests["Member"]:
+                                    print("Student already invited.")
+                                    return
+                        self.database.search(
+                            "member_request.csv").insert([request])
+                        print(self.database.search("member_request.csv"))
                 elif choice == "2":
                     user_ids = []
+                    print(self.database.search("member_request.csv").table)
                     count = 1
                     buffer = 0
                     print("Showing Accepted requests.")
@@ -342,27 +350,45 @@ class User:
                     if count == 1:
                         print("No pending request found.")
                         return
-                    print(self.database.search("member_request.csv").table)
                     request = input("Enter a request number to "
-                                    "approve or deny: ")
+                                    "approve or deny enter esc to exit: ")
+                    if request == "esc":
+                        for i in self.database.search(
+                                "member_request.csv").table:
+                            if i["Response"] == "pending":
+                                i["Response"] = "Awaiting confirmation"
+                        return
                     while int(request) not in range(count + 1):
                         print("Invalid request number.")
                         request = input("Enter a request number to "
-                                        "approve or deny: ")
-                    response = input("Approve or deny: ")
+                                        "approve or deny enter esc to exit: ")
+                        if request == "esc":
+                            for i in self.database.search(
+                                    "member_request.csv").table:
+                                if i["Response"] == "pending":
+                                    i["Response"] = "Awaiting confirmation"
+                            return
+                    response = input("response (approve/deny): ")
+                    if response == "deny":
+                        self.database.search("member_request.csv").table[
+                            int(request) - 1 + buffer].update(
+                            {"Response": response})
+                        for i in self.database.search(
+                                "member_request.csv").table:
+                            if i["Response"] == "pending":
+                                i["Response"] = "Awaiting confirmation"
+                            return
                     not_full = False
                     for project in self.database.search("Projects.csv").table:
                         if str(self.id) in project["Lead"]:
                             if project["Member1"] == "None":
                                 project["Member1"] = (
-                                    f"{self.find_username(user_ids[int(request) - 1])}"
-                                    f" : {user_ids[int(request) - 1]}")
+                                    f"{user_ids[int(request) - 1]}")
                                 not_full = True
                                 break
                             elif project["Member2"] == "None":
                                 project["Member2"] = (
-                                    f"{self.find_username(user_ids[int(request) - 1])}"
-                                    f" : {user_ids[int(request) - 1]}")
+                                    f"{user_ids[int(request) - 1]}")
                                 not_full = True
                                 break
                     if not not_full:
@@ -419,7 +445,7 @@ class User:
                 for projects in self.database.search("Projects.csv").table:
                     if str(self.id) in projects["Lead"]:
                         request.update({"ID": projects["ID"]})
-                        request.update({"Advisor": f"{advisor_list[int(advisor) - 1]['first']} "
+                        request.update({"Advisor": f"{advisor_list[int(advisor)-1]['first']} "
                                                    f"{advisor_list[int(advisor) - 1]['last']}"}
                                        )
                         request.update({"Response": "Awaiting response"})
@@ -501,6 +527,10 @@ class User:
                         if user["ID"] == str(self.id):
                             self.clearance = 3
                             user["type"] = "lead"
+                    for user in self.database.search("login.csv").table:
+                        if user["ID"] == str(self.id):
+                            self.clearance = 3
+                            user["role"] = "lead"
         elif self.clearance == 5:
             print("Updating details. Enter esc to exit.")
             for project in self.database.search("Projects.csv").table:
