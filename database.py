@@ -248,7 +248,14 @@ class User:
                 if len(self.database.search("Projects.csv").table) == 0:
                     print("No projects found.")
                 for projects in self.database.search("Projects.csv").table:
-                    print(projects)
+                    print(f'ID: {projects["ID"]} Title: {projects["Title"]}')
+                    print(f"Lead: {self.find_username(projects['Lead'])}")
+                    member1 = self.find_username(projects['Member1'])
+                    member2 = ", " + self.find_username(projects['Member2'])
+                    if member1 != "None":
+                        print(f"Member(s): {member1}"
+                              f"{'' if member2 == 'None' else member2}")
+                    print()
             elif action == "4":
                 pass
             elif action == "5":
@@ -318,8 +325,8 @@ class User:
                             request.update({"Member": stu_id})
                             request.update({"Response": "Awaiting response"})
                             request.update(
-                                {"Date of response"
-                                 : time.asctime(time.localtime())})
+                                {"Date of response": time.asctime(
+                                    time.localtime())})
                             member_flag = True
                             break
                     if not member_flag:
@@ -349,9 +356,11 @@ class User:
                                 if str(self.id) in project["Lead"]:
                                     if (request["Response"]
                                             == "Awaiting confirmation"):
-                                        print(f"{count}. "
-                                              f"{self.find_user(request['Member'])['first']} "
-                                              f"{self.find_user(request['Member'])['last']} "
+                                        first = self.find_user(
+                                            request['Member'])['first']
+                                        last = self.find_user(
+                                            request['Member'])['last']
+                                        print(f"{count}. {first} {last} "
                                               f"ID: {request['Member']}")
                                         user_ids.append(request['Member'])
                                         request["Response"] = "pending"
@@ -448,18 +457,28 @@ class User:
                         print(f"{count}. {advisors['first']} "
                               f"{advisors['last']}")
                         count += 1
-                print("Enter a number from the list to invite an advisor.")
+                print("Enter a number from the list to invite an advisor\n "
+                      "enter esc to exit.")
                 advisor = input("Enter number: ")
+                if advisor == "esc":
+                    return
                 while int(advisor) not in range(count):
                     print("Advisor is not in the list.")
                     advisor = input("Enter number: ")
+                    if advisor == "esc":
+                        return
                 request = {}
                 for projects in self.database.search("Projects.csv").table:
                     if str(self.id) in projects["Lead"]:
+                        for requests in self.database.search(
+                                "Advisor_request.csv").table:
+                            if projects["ID"] in requests["ID"]:
+                                print("You have already invited an advisor.")
+                                return
+                        first = advisor_list[int(advisor)-1]['first']
+                        last = advisor_list[int(advisor) - 1]['last']
                         request.update({"ID": projects["ID"]})
-                        request.update({"Advisor": f"{advisor_list[int(advisor)-1]['first']} "
-                                                   f"{advisor_list[int(advisor) - 1]['last']}"}
-                                       )
+                        request.update({"Advisor": f"{first} {last}"})
                         request.update({"Response": "Awaiting response"})
                         request.update(
                             {"Date": time.asctime(time.localtime())})
@@ -513,8 +532,8 @@ class User:
                             print(f"Project ID: {inv['ID']}")
                             proj_list.append(inv["ID"])
                             continue
-                    print("No projects found.")
-                    return
+                        print("No projects found.")
+                        return
                 projects = input("Enter project ID (type esc to cancel): ")
                 if projects == "esc":
                     return
@@ -546,8 +565,6 @@ class User:
         elif self.clearance == 5:
             print("Updating details. Enter esc to exit.")
             for project in self.database.search("Projects.csv").table:
-                print(self.id)
-                print(project["Member1"])
                 if (str(self.id) in project["Member1"] or
                         str(self.id) in project['Member2']):
                     details = input("Enter details: ")
