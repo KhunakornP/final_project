@@ -217,15 +217,20 @@ class User:
                     print("No requests found.")
                     return
                 print("Select request to confirm.")
+                ids = []
                 for request in (
                         self.database.search("Advisor_request.csv").table):
                     if (request["Advisor"].split()[0]) in self.username:
                         print(f"Project ID: {request['ID']}")
+                        ids.append(request["ID"])
                     else:
                         print("No requests found.")
                         return
                 project_id = input("Enter id: ")
-                response = input("Enter response: ")
+                while project_id not in ids:
+                    print("Invalid ID")
+                    project_id = input("Enter id: ")
+                response = input("Enter response (approve/deny): ")
                 for request in (
                         self.database.search("Advisor_request.csv").table):
                     if request["ID"] == project_id:
@@ -233,6 +238,11 @@ class User:
                         request["Date of response"] \
                             = time.asctime(time.localtime())
                         print(self.database.search("Advisor_request.csv"))
+                if response == "approve":
+                    self.database.search(
+                        "persons.csv").update_table(self.id, "type", "advisor")
+                    self.database.search(
+                        "login.csv").update_table(self.id, "role", "advisor")
             elif action == "3":
                 print("List of projects:")
                 if len(self.database.search("Projects.csv").table) == 0:
@@ -308,7 +318,8 @@ class User:
                             request.update({"Member": stu_id})
                             request.update({"Response": "Awaiting response"})
                             request.update(
-                                {"Date": time.asctime(time.localtime())})
+                                {"Date of response"
+                                 : time.asctime(time.localtime())})
                             member_flag = True
                             break
                     if not member_flag:
@@ -399,12 +410,13 @@ class User:
                             i["Response"] = "Awaiting confirmation"
                     self.database.search("member_request.csv").table[
                         int(request) - 1 + buffer].update(
-                        {"Response": response})
-                    for project in self.database.search("Projects.csv").table:
-                        if str(self.id) in project["Lead"]:
-                            if (project["Member1"] != "None"
-                                    and project["Member2"] != "None"):
-                                project["Status"] = "Awaiting advisor"
+                        {"Response": "approved"})
+                    self.database.search(
+                        "persons.csv").update_table(
+                        user_ids[int(request) - 1], "type", "member")
+                    self.database.search(
+                        "login.csv").update_table(
+                        user_ids[int(request) - 1], "role", "member")
                     print(self.database.search("member_request.csv").table)
                     print()
                     print(self.database.search("Projects.csv").table)
