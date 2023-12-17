@@ -1,14 +1,29 @@
-import csv, os
-import copy
+"""
+Main code for project_manage.py
+"""
+import csv
+import os
 import time
 
 
 class CsvReader:
+    """
+    Reads .csv files
+    """
     def __init__(self, name):
+        """
+        Creates a list of dictionaries with a name.
+        :param name: str
+        """
         self.data = []
         self.name = name
 
     def read(self):
+        """
+        Reads the current .csv file and transforms it into a
+        list of dictionaries.
+        :return: list of dictionaries
+        """
         __location__ = os.path.realpath(
             os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
@@ -20,13 +35,26 @@ class CsvReader:
 
 
 class Database:
+    """
+    A database which holds multiple tables
+    """
     def __init__(self):
+        """
+        Creates a database.
+        """
         self.database = []
 
     def insert(self, data):
+        """
+        Inserts a piece of data into the database.
+        """
         self.database.append(data)
 
     def search(self, name):
+        """
+        Search and select a table with the name provided.
+        If no table exist return None
+        """
         for table in self.database:
             if table.table_name == name:
                 return table
@@ -34,71 +62,68 @@ class Database:
 
 
 class Table:
+    """
+    A list of dictionaries.
+    """
     def __init__(self, name, table):
+        """
+        Initiates a list of dictionaries with a name.
+        """
         self.table_name = name
         self.table = table
 
     def insert(self, data):
+        """
+        Inserts a piece of data into the table
+        """
         for item in data:
             self.table.append(item)
         return self.table
 
-    def join(self, other_table, common_key):
-        joined_table = Table(
-            self.table_name + '_joins_' + other_table.table_name, [])
-        for item1 in self.table:
-            for item2 in other_table.table:
-                if item1[common_key] == item2[common_key]:
-                    dict1 = copy.deepcopy(item1)
-                    dict2 = copy.deepcopy(item2)
-                    dict1.update(dict2)
-                    joined_table.table.append(dict1)
-        return joined_table
-
-    def filter(self, condition):
-        filtered_table = Table(self.table_name + '_filtered', [])
-        for item1 in self.table:
-            if condition(item1):
-                filtered_table.table.append(item1)
-        return filtered_table
-
-    def aggregate(self, function, aggregation_key):
-        temps = []
-        for item1 in self.table:
-            temps.append(float(item1[aggregation_key]))
-        return function(temps)
-
-    def select(self, attributes_list):
-        temps = []
-        for item1 in self.table:
-            dict_temp = {}
-            for key in item1:
-                if key in attributes_list:
-                    dict_temp[key] = item1[key]
-            temps.append(dict_temp)
-        return temps
-
     def update_table(self, id_value, key, value):
+        """
+        Updates a dictionary in the table with a new key value pair.
+        If the id_value exist int the table the dictionary is updated
+        and return the data.
+        Else return None
+        """
         for data in self.table:
             if data["ID"] == str(id_value):
                 data[key] = value
                 return data
-        return
+        return None
 
     def update_dict(self, id_value):
+        """
+        Updates an entire dictionary in the table.
+        If the id_value exists in the table update the dictionary
+        and returns the new dictionary.
+        Else returns None.
+        """
         for data in self.table:
             if data["ID"] == str(id_value):
                 for keys in data.keys():
                     data[keys] = input(f"Enter new {keys}: ")
                 return data
-        return
+        return None
 
     def __str__(self):
         return self.table_name + ':' + str(self.table)
 
 
 class User:
+    """
+    Runs the applications as well as assign user permissions.
+    """
     def __init__(self, rank, user_id, data_base):
+        """
+        Creates a User object with the following attributes.
+        Clearance: The user type
+        Advisor: Is the user an advisor
+        Database: The database to use data from
+        ID: The users ID
+        Username: The user's username
+        """
         self.clearance = rank
         self.advisor = False
         self.database = data_base
@@ -106,6 +131,10 @@ class User:
         self.username = self.find_username(self.id)
 
     def manage(self):
+        """
+        Runs the program and ask the user for inputs
+        If the user inputs 0 the program terminates
+        """
         self.check_advisor()
         if self.finish_project():
             self.clearance = 0
@@ -121,11 +150,17 @@ class User:
         return False
 
     def check_advisor(self):
+        """
+        Checks if the user is an advisor.
+        """
         for advisors in self.database.search("Projects.csv").table:
             if advisors["Advisor"] == str(self.id):
                 self.advisor = True
 
     def finish_project(self):
+        """
+        Checks if the user's project is finished.
+        """
         for projects in self.database.search("Projects.csv").table:
             members = [projects['Lead'], projects['Member1'],
                        projects['Member2']]
@@ -147,6 +182,9 @@ class User:
         return False
 
     def read_eval(self):
+        """
+        Reads the projects evalutions.
+        """
         for projects in self.database.search("Projects.csv").table:
             members = [projects['Lead'], projects['Member1'],
                        projects['Member2']]
@@ -179,6 +217,9 @@ class User:
                         count += 1
 
     def read_project(self):
+        """
+        Reads the user's project details.
+        """
         for projects in self.database.search("Projects.csv").table:
             members = [projects['Lead'], projects['Member1'],
                        projects['Member2']]
@@ -198,16 +239,31 @@ class User:
         return False
 
     def find_user(self, user_id):
+        """
+        Find the user in the database.
+        If the user_id is in the database returns user data.
+        Else returns none.
+        """
         for i in self.database.search("persons.csv").table:
             if i["ID"] == str(user_id):
                 return i
+        return None
 
     def find_username(self, user_id):
+        """
+        Finds the user's username.
+        If the user_id is in the database returns the username.
+        Else returns none
+        """
         for i in self.database.search("login.csv").table:
             if i["ID"] == str(user_id):
                 return i["username"]
+        return None
 
     def help(self):
+        """
+        Prints the user interface.
+        """
         if self.clearance == 1:
             print("1. Update a value.")
             print("2. Update a dictionary.")
@@ -234,6 +290,9 @@ class User:
         print("Enter 0 to exit.")
 
     def actions(self, action):
+        """
+        Takes the users actions and runs the appropriate code.
+        """
         if self.clearance == 1:
             if action == "1":
                 print("Updating database to quit enter esc: ")
@@ -300,7 +359,7 @@ class User:
                 ids = []
                 for request in (
                         self.database.search("Advisor_request.csv").table):
-                    if (request["Advisor"].split()[0]) in self.username:
+                    if request["Advisor"].split()[0] in self.username:
                         if request['Response'] not in ["approve", "deny"]:
                             print(f"Project ID: {request['ID']}")
                             ids.append(request["ID"])
