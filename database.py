@@ -146,6 +146,25 @@ class User:
                     return True
         return False
 
+    def read_project(self):
+        for projects in self.database.search("Projects.csv").table:
+            members = [projects['Lead'], projects['Member1'],
+                       projects['Member2']]
+            if self.id in members:
+                print(f"Your project details:\n"
+                      f"Title: {projects['Title']} ID: {projects['ID']}")
+                print(f"Lead: {self.find_username(projects['Lead'])}")
+                member1 = self.find_username(projects['Member1'])
+                member2 = self.find_username(projects['Member2'])
+                if member1 is not None:
+                    print(f"Member(s): {member1}"
+                          f"{'' if member2 is None else ', ' + member2}")
+                print(f"Advisor: {self.find_username(projects['Advisor'])}\n"
+                      f"Status: {projects['Status']}\n"
+                      f"Details: {projects['Details']}")
+                return True
+        return False
+
     def find_user(self, user_id):
         for i in self.database.search("persons.csv").table:
             if i["ID"] == str(user_id):
@@ -603,6 +622,7 @@ class User:
                     print()
                     print(self.database.search("Projects.csv").table)
             elif action == "4":
+                self.read_project()
                 print("Updating details. Enter esc to exit.")
                 for project in self.database.search("Projects.csv").table:
                     if str(self.id) in project["Lead"]:
@@ -763,6 +783,7 @@ class User:
                             self.clearance = 3
                             user["role"] = "lead"
         elif self.clearance == 5:
+            self.read_project()
             print("Updating details. Enter esc to exit.")
             for project in self.database.search("Projects.csv").table:
                 if (str(self.id) in project["Member1"] or
