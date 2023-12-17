@@ -1,9 +1,9 @@
 # To do:
-- [ ] add a better interface for admins
-- [ ] add more checks so user inputs don't brick some actions
-- [ ] more code optimizations
-- [ ] better menus
-- [ ] create an evaluation step
+- [x] add a better interface for admins
+- [x] add more checks so user inputs don't brick some actions
+- [x] more code optimizations
+- [x] better menus
+- [x] create an evaluation step
 - [ ] PEP 8 :)
 
 # Usage

@@ -5,13 +5,12 @@ import csv
 
 def initializing():
     db = database.Database()
-    print("Read files:")
     for files in os.listdir():
         if files.endswith(".csv"):
             data = database.Table(files, database.CsvReader(files).read())
-            print(files)
             db.insert(data)
     return db
+
 
 def login(db):
     user = input("Enter username: ")
@@ -31,10 +30,6 @@ def exit(db):
             writer = csv.DictWriter(myFile, fieldnames= keys)
             writer.writeheader()
             writer.writerows(tables.table)
-            myFile.close()
-            myFile = open(tables.table_name, 'r')
-            print(f"The content of {tables.table_name} is:")
-            print(myFile.read())
             myFile.close()
 
 
