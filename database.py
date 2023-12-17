@@ -728,7 +728,7 @@ class User:
                         if details == "esc":
                             return
                         project["Details"] = details
-                        print(project)
+                        self.read_project()
                         return
                 print("Project not found have you created one yet?")
             elif action == "5":
