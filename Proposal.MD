@@ -8,17 +8,15 @@ who will help evaluate the project and provide feedback.
 
 ### The evaluation steps
 1. The lead student submit his project for evaluation.
-The system then assigns a number of faculty and advisors to review the project.
-The default number is 5 people and the system will attempt to assign personnel based on their
-current commitments.
+The advisor of the project then chooses other faculty members to help 
+evaluate the project. The default number is 3 people.
 
 
-2. The system then notifies the selected faculty personnel. The notification
-will include the project details as well as final date of acceptance.
+2. The system then notifies the selected faculty personnel.
 
 
-3. Faculty personnel will be able to accept or decline to be an evaluator
-and have access to the project  in question and all it's details.
+3. Faculty personnel will be able to access to the project 
+in question and all it's details.
 
 
 4. The evaluators will then evaluate the project based on a fixed criteria and
@@ -93,3 +91,10 @@ for eval in eval.csv:
 ```
 
 once again this code is just a proof of concept and will not work if ran
+
+### change logs
+
+- default number of evaluators are now 3 people (was 5) and are chosen
+by the advisor. The advisor is now also an evaluator by default.
+- faculty members can no longer deny becoming evaluators as the 
+advisor should be capable of picking the right people for the job.

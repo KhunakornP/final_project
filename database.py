@@ -117,6 +117,12 @@ class User:
             action = input("Enter action: ")
         return False
 
+    def check_advisor(self):
+        for advisors in self.database.search("Projects.csv").table:
+            if advisors["Advisor"] == str(self.id):
+                return True
+        return
+
     def find_user(self, user_id):
         for i in self.database.search("persons.csv").table:
             if i["ID"] == str(user_id):
@@ -243,6 +249,10 @@ class User:
                         "persons.csv").update_table(self.id, "type", "advisor")
                     self.database.search(
                         "login.csv").update_table(self.id, "role", "advisor")
+                    self.advisor = True
+                    for projects in self.database.search("Projects.csv").table:
+                        if projects["ID"] == project_id:
+                            projects["Advisor"] = self.id
             elif action == "3":
                 print("List of projects:")
                 if len(self.database.search("Projects.csv").table) == 0:
@@ -251,13 +261,123 @@ class User:
                     print(f'ID: {projects["ID"]} Title: {projects["Title"]}')
                     print(f"Lead: {self.find_username(projects['Lead'])}")
                     member1 = self.find_username(projects['Member1'])
-                    member2 = ", " + self.find_username(projects['Member2'])
-                    if member1 != "None":
+                    member2 = self.find_username(projects['Member2'])
+                    if member1 is not None:
                         print(f"Member(s): {member1}"
-                              f"{'' if member2 == 'None' else member2}")
-                    print()
+                              f"{'' if member2 is None else ', ' + member2}")
             elif action == "4":
-                pass
+                advisor = False
+                for items in self.database.search("evaluation.csv").table:
+                    if items["evaluators"] == str(self.id):
+                        proj_id = items["ID"]
+                        evaluation = items
+                        advisor = True
+                        break
+                if advisor:
+                    advisor_list = []
+                    count = 1
+                    print("Showing faculty members")
+                    for advisors in self.database.search("persons.csv").table:
+                        if advisors["type"] in ["faculty", 'advisor']:
+                            if advisors["ID"] != self.id:
+                                print(f"{count}. {advisors['first']} "
+                                      f"{advisors['last']}")
+                                advisor_list.append(advisors)
+                                count += 1
+                    num = input("Enter the number of advisors"
+                                "(esc to cancel): ")
+                    if num == "esc":
+                        return
+                    while not 3 <= int(num) <= len(advisor_list):
+                        print("Invalid amount.")
+                        num = input("Enter the number of advisors"
+                                    "(esc to cancel): ")
+                        if num == "esc":
+                            return
+                    inv = 1
+                    inv_list = [self.id]
+                    print("Enter a number from the list to invite"
+                          " an advisor.")
+                    advisor = input("Enter number: ")
+                    while int(advisor) not in range(count + 1):
+                        print("Advisor is not in the list.")
+                        advisor = input("Enter number: ")
+                    inv_list.append(advisor_list[int(advisor) - 1]["ID"])
+                    advisor_list.pop(int(advisor) - 1)
+                    while inv != int(num)-1:
+                        count = 1
+                        for items in advisor_list:
+                            print(f"{count}. {items['first']} {items['last']}")
+                            count += 1
+                        print("Enter a number from the list to invite"
+                              " an advisor.")
+                        advisor = input("Enter number: ")
+                        while int(advisor) not in range(count+1):
+                            print("Advisor is not in the list.")
+                            advisor = input("Enter number: ")
+                        inv_list.append(advisor_list[int(advisor)-1]["ID"])
+                        advisor_list.pop(int(advisor)-1)
+                        inv += 1
+                    for projects in self.database.search("Projects.csv").table:
+                        if projects["ID"] == str(proj_id):
+                            print(f"Title: {projects['Title']}\n"
+                                  f"Details: {projects['Details']}")
+                            break
+                    comment = input('Enter comment: ')
+                    rating = input("Enter rating(1-10): ")
+                    while float(rating) not in range(11):
+                        print("Invalid rating.")
+                        rating = input("Enter rating(1-10): ")
+                    evaluation["evaluators"] = [int(i) for i in inv_list]
+                    evaluation["comments"] = [comment]
+                    evaluation["score"] = [int(rating)]
+                    print(evaluation)
+                    return
+                else:
+                    print("Showing projects that need evaluation.")
+                    count = 1
+                    proj_list = []
+                    for items in self.database.search("evaluation.csv").table:
+                        ids = items["evaluators"].strip('][').split(',')
+                        ids = [int(i) for i in ids]
+                        ids = [str(i) for i in ids]
+                        if self.id in ids:
+                            print(f"{count}. Title: {items['title']}"
+                                  f" ID: {items['ID']}")
+                            proj_list.append(items['ID'])
+                            count += 1
+                    if count == 1:
+                        print("No projects found.")
+                        return
+                    project = input("Enter a project ID: ")
+                    while project not in proj_list:
+                        print("Invalid ID.")
+                        project = input("Enter a project ID: ")
+                    for projects in self.database.search("Projects.csv").table:
+                        if projects["ID"] == str(project):
+                            print(f"Evaluating {projects['Title']}\n"
+                                  f"Details: {projects['Details']}")
+                            break
+                    comment = input('Enter comment: ')
+                    rating = input("Enter rating(1-10): ")
+                    while float(rating) not in range(11):
+                        print("Invalid rating.")
+                        rating = input("Enter rating(1-10): ")
+                    for items in self.database.search("evaluation.csv").table:
+                        if items["ID"] == str(project):
+                            comments = items["comments"].strip('][').split(',')
+                            comments = [i.strip(" ").strip("'")
+                                        for i in comments]
+                            comments.append(comment)
+                            items["comments"] = comments
+                            score = items["score"].strip('][').split(',')
+                            score = [i.strip(" ").strip("'") for i in score]
+                            score.append(rating)
+                            items["score"] = score
+                            if len(score) == 3:
+                                items["date"] = time.asctime(time.localtime())
+                            print(items)
+                            return
             elif action == "5":
                 pass
             # evaluation will be implemented in the future
@@ -452,7 +572,7 @@ class User:
                     return
                 print("List of advisors: ")
                 for advisors in self.database.search("persons.csv").table:
-                    if advisors["type"] == "faculty":
+                    if advisors["type"] in ["faculty", "advisor"]:
                         advisor_list.append(advisors)
                         print(f"{count}. {advisors['first']} "
                               f"{advisors['last']}")
@@ -494,6 +614,20 @@ class User:
                 if not check:
                     print("No project provided aborting.")
                     return
+                for projects in self.database.search("Projects.csv").table:
+                    if str(self.id) in projects["Lead"]:
+                        if projects["Status"] == "Awaiting finalization":
+                            print("Submitting final project for finalization.")
+                            choice = input("Confirm?(yes/no): ")
+                            while choice != "yes" and choice != "no":
+                                print("Invalid choice.")
+                                choice = input("Confirm?(yes/no): ")
+                            if choice == "yes":
+                                print("Finalization request submitted.")
+                                projects["Status"] = "finalizing"
+                            else:
+                                print("Aborting.")
+                                return 
                 print("Submitting final project for evaluation.")
                 choice = input("Confirm?(yes/no): ")
                 while choice != "yes" and choice != "no":
@@ -501,8 +635,21 @@ class User:
                     choice = input("Confirm?(yes/no): ")
                 if choice == "yes":
                     print("Project submitted.")
-                    pass
-                    # check proposal.md
+                    for projects in self.database.search("Projects.csv").table:
+                        if str(self.id) in projects["Lead"]:
+                            if projects["Status"] != "Evaluating":
+                                projects["Status"] = "Evaluating"
+                                evaluate = {}
+                                evaluate.update({"ID": projects["ID"]})
+                                evaluate.update({"title": projects["Title"]})
+                                evaluate.update({"no_advisors": 3})
+                                evaluate.update({"comments": []})
+                                evaluate.update({
+                                    "evaluators": project["Advisor"]})
+                                evaluate.update({"score": []})
+                                evaluate.update({"date": "processing"})
+                                self.database.search(
+                                    "evaluation.csv").table.append(evaluate)
                 elif choice == "no":
                     print("Aborting.")
                     return
