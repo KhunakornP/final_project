@@ -15,6 +15,12 @@ entering their username and password.
 If the user entered a valid username and password the program will allow them
 to preform actions based on their role.
 
+
+(Unfortunately due to how project_manage was written the data will
+only update once the user logs out. While the oversight can be fixed
+it would necessitate me to restructure the entire code and I do not have
+enough time to fix it sorry in advance.)
+
 # Roles
 There are currently 5 roles and each role can do the following
 
@@ -31,24 +37,25 @@ There are currently 5 roles and each role can do the following
 - Evaluate created projects.
 ### Advisors
 
-- Same as a faculty
-- Can approve projects that are currently supervising
-
+- Same as a faculty.
+- Can approve projects that are currently being supervised.
 ### Leads
 
-- Create a project
-- Send an invitation to students to join their project
-- Send an invitation to a faculty or advisor to become their project advisor
-Note: As of writing this I am unsure whether advisors can supervise multiple
-projects will update later.
+- Create a project.
+- View and modify their project as well as their
+evaluations.
+- Send an invitation to students to join their project.
+- Send an invitation to a faculty or advisor to become their project advisor.
+
 
 ### students
 
-- View and respond to their project invitations
-- Become a lead
+- View and respond to their project invitations.
+- Become a lead.
 
 ### members
 
-- View and modify their project.
+- View and modify their project as well as their.
+evaluations
 
 
