@@ -4,7 +4,7 @@
 - [x] more code optimizations
 - [x] better menus
 - [x] create an evaluation step
-- [ ] PEP 8 :)
+- [ ] PEP 8 (I tried)
 
 # Usage
 The program will first read all .csv files in the directiory and put in 
@@ -21,16 +21,14 @@ There are currently 5 roles and each role can do the following
 ### Admins:
 
 - Can edit the database using various functions.
-- Note: Most functions have yet to be implemented as of the current version
+
 
 ### Faculty
 
 - View and respond to advisor requests.
 - Become an advisor to a project.
 - See all projects and their details.
-- Evaluate created projects. (The process has not been implemented 
-as of the current version)
-
+- Evaluate created projects.
 ### Advisors
 
 - Same as a faculty
@@ -47,8 +45,7 @@ projects will update later.
 ### students
 
 - View and respond to their project invitations
-- become a Lead if they have no project invitations that are
-unresolved
+- Become a lead
 
 ### members
 
