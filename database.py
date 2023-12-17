@@ -106,6 +106,9 @@ class User:
         self.username = self.find_username(self.id)
 
     def manage(self):
+        self.check_advisor()
+        if self.finish_project():
+            self.clearance = 0
         print(f"Welcome {self.username} here are your available actions.")
         self.help()
         action = input("Enter action: ")
@@ -120,8 +123,28 @@ class User:
     def check_advisor(self):
         for advisors in self.database.search("Projects.csv").table:
             if advisors["Advisor"] == str(self.id):
-                return True
-        return
+                self.advisor = True
+
+    def finish_project(self):
+        for projects in self.database.search("Projects.csv").table:
+            members = [projects['Lead'], projects['Member1'],
+                       projects['Member2']]
+            if self.id in members:
+                if projects["Status"] == "Finished":
+                    print("You have finished your project")
+                    print(f"Your project details:\n"
+                          f"Title: {projects['Title']} ID: {projects['ID']}")
+                    print(f"Lead: {self.find_username(projects['Lead'])}")
+                    member1 = self.find_username(projects['Member1'])
+                    member2 = self.find_username(projects['Member2'])
+                    if member1 is not None:
+                        print(f"Member(s): {member1}"
+                              f"{'' if member2 is None else ', ' + member2}")
+                    print(f"Advisor: {projects['Advisor']}\n"
+                          f"Status: {projects['Status']}\n"
+                          f"Details: {projects['Details']}")
+                    return True
+        return False
 
     def find_user(self, user_id):
         for i in self.database.search("persons.csv").table:
@@ -265,6 +288,7 @@ class User:
                     if member1 is not None:
                         print(f"Member(s): {member1}"
                               f"{'' if member2 is None else ', ' + member2}")
+                    print(f"Status: {projects['Status']}")
             elif action == "4":
                 advisor = False
                 for items in self.database.search("evaluation.csv").table:
@@ -304,7 +328,7 @@ class User:
                         advisor = input("Enter number: ")
                     inv_list.append(advisor_list[int(advisor) - 1]["ID"])
                     advisor_list.pop(int(advisor) - 1)
-                    while inv != int(num)-1:
+                    while inv != int(num) - 1:
                         count = 1
                         for items in advisor_list:
                             print(f"{count}. {items['first']} {items['last']}")
@@ -312,11 +336,11 @@ class User:
                         print("Enter a number from the list to invite"
                               " an advisor.")
                         advisor = input("Enter number: ")
-                        while int(advisor) not in range(count+1):
+                        while int(advisor) not in range(count + 1):
                             print("Advisor is not in the list.")
                             advisor = input("Enter number: ")
-                        inv_list.append(advisor_list[int(advisor)-1]["ID"])
-                        advisor_list.pop(int(advisor)-1)
+                        inv_list.append(advisor_list[int(advisor) - 1]["ID"])
+                        advisor_list.pop(int(advisor) - 1)
                         inv += 1
                     for projects in self.database.search("Projects.csv").table:
                         if projects["ID"] == str(proj_id):
@@ -374,13 +398,42 @@ class User:
                             score = [i.strip(" ").strip("'") for i in score]
                             score.append(rating)
                             items["score"] = score
-                            if len(score) == 3:
+                            if len(score) == int(items['no_advisors']):
                                 items["date"] = time.asctime(time.localtime())
+                                total_score = (sum([int(i) for i in score])
+                                               / len(score))
+                                for i in self.database.search(
+                                        "Projects.csv").table:
+                                    if i['ID'] == project:
+                                        if total_score >= 7.5:
+                                            i['Status'] = \
+                                                "Awaiting finalization"
+                                        else:
+                                            i['Status'] = \
+                                                "Awaiting re-evaluation"
                             print(items)
                             return
             elif action == "5":
-                pass
-            # evaluation will be implemented in the future
+                for projects in self.database.search("Projects.csv").table:
+                    if projects["Advisor"] == str(self.id):
+                        data = ["Awaiting finalization", "Awaiting "
+                                                         "re-finalization"]
+                        if projects["Status"] in data:
+                            print(f"Confirming project: {projects['Title']}")
+                            choice = input("confirm? (yes/no/cancel): ")
+                            while choice not in ["yes", "no", "cancel"]:
+                                print("Invalid choice.")
+                                choice = input("confirm? (yes/no): ")
+                            if choice == "cancel":
+                                return
+                            elif choice == "yes":
+                                projects["Status"] = "Finished"
+                                print(projects)
+                                return
+                            else:
+                                projects["Status"] = "Awaiting re-finalization"
+                                print(projects)
+                                return
         elif self.clearance == 3:
             project = {}
             if action == "1":
@@ -595,7 +648,7 @@ class User:
                             if projects["ID"] in requests["ID"]:
                                 print("You have already invited an advisor.")
                                 return
-                        first = advisor_list[int(advisor)-1]['first']
+                        first = advisor_list[int(advisor) - 1]['first']
                         last = advisor_list[int(advisor) - 1]['last']
                         request.update({"ID": projects["ID"]})
                         request.update({"Advisor": f"{first} {last}"})
@@ -627,7 +680,7 @@ class User:
                                 projects["Status"] = "finalizing"
                             else:
                                 print("Aborting.")
-                                return 
+                                return
                 print("Submitting final project for evaluation.")
                 choice = input("Confirm?(yes/no): ")
                 while choice != "yes" and choice != "no":
