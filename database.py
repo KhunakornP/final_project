@@ -146,6 +146,38 @@ class User:
                     return True
         return False
 
+    def read_eval(self):
+        for projects in self.database.search("Projects.csv").table:
+            members = [projects['Lead'], projects['Member1'],
+                       projects['Member2']]
+            if self.id in members:
+                count = 1
+                for evals in self.database.search("evaluation.csv").table:
+                    if projects["ID"] == evals["ID"]:
+                        print(f"Evaluation {count}#.")
+                        eval_id = evals["evaluators"].strip('][').split(',')
+                        eval_id = [i.strip(" ").strip("'")
+                                   for i in eval_id]
+                        comments = evals["comments"].strip('][').split(',')
+                        comments = [i.strip(" ").strip("'")
+                                    for i in comments]
+                        score = evals["score"].strip('][').split(',')
+                        score = [i.strip(" ").strip("'") for i in score]
+                        evaluator = 0
+                        for i in range(len(eval_id)):
+                            faculty = self.find_user(eval_id[evaluator])
+                            print(f"Evaluator: {faculty['first']} "
+                                  f"{faculty['last']}\n"
+                                  f"Comment: {comments[evaluator]}\n"
+                                  f"Score: {score[evaluator]}")
+                            evaluator += 1
+                        total_score = \
+                            (sum([int(i) for i in score])/ len(score))
+                        print(f"Total score: "
+                              f"{total_score:.2f}")
+                        print()
+                        count += 1
+
     def read_project(self):
         for projects in self.database.search("Projects.csv").table:
             members = [projects['Lead'], projects['Member1'],
@@ -190,7 +222,7 @@ class User:
             print("1. Create project.")
             print("2. Find members.")
             print("3. Invite/add students to the project")
-            print("4. Modify project details.")
+            print("4. Manage project details.")
             print("5. Request advisor.")
             print("6. Submit project for approval.")
         elif self.clearance == 4:
@@ -198,7 +230,7 @@ class User:
             print("2. Respond to invitations.")
             print("3. Elevate to lead student.")
         elif self.clearance == 5:
-            print("1. Modify project details.")
+            print("1. Manage project details.")
         print("Enter 0 to exit.")
 
     def actions(self, action):
@@ -269,23 +301,30 @@ class User:
                 for request in (
                         self.database.search("Advisor_request.csv").table):
                     if (request["Advisor"].split()[0]) in self.username:
-                        print(f"Project ID: {request['ID']}")
-                        ids.append(request["ID"])
-                    else:
-                        print("No requests found.")
-                        return
-                project_id = input("Enter id: ")
+                        if request['Response'] not in ["approve", "deny"]:
+                            print(f"Project ID: {request['ID']}")
+                            ids.append(request["ID"])
+                if len(ids) < 1:
+                    print("No requests found.")
+                    return
+                project_id = input("Enter id (enter esc to cancel): ")
+                if project_id == "esc":
+                    return
                 while project_id not in ids:
                     print("Invalid ID")
                     project_id = input("Enter id: ")
+                    if project_id == "esc":
+                        return
                 response = input("Enter response (approve/deny): ")
+                while response not in ["approve", "deny"]:
+                    response = input("Enter response (approve/deny): ")
                 for request in (
                         self.database.search("Advisor_request.csv").table):
                     if request["ID"] == project_id:
                         request["Response"] = response
-                        request["Date of response"] \
+                        request["Date"] \
                             = time.asctime(time.localtime())
-                        print(self.database.search("Advisor_request.csv"))
+                        print("Response submitted")
                 if response == "approve":
                     self.database.search(
                         "persons.csv").update_table(self.id, "type", "advisor")
@@ -374,7 +413,7 @@ class User:
                     evaluation["evaluators"] = [int(i) for i in inv_list]
                     evaluation["comments"] = [comment]
                     evaluation["score"] = [int(rating)]
-                    print(evaluation)
+                    print("Evaluation submitted.")
                     return
                 else:
                     print("Showing projects that need evaluation.")
@@ -384,6 +423,7 @@ class User:
                         ids = items["evaluators"].strip('][').split(',')
                         ids = [int(i) for i in ids]
                         ids = [str(i) for i in ids]
+                        ids.pop(0)
                         if self.id in ids:
                             print(f"{count}. Title: {items['title']}"
                                   f" ID: {items['ID']}")
@@ -430,7 +470,7 @@ class User:
                                         else:
                                             i['Status'] = \
                                                 "Awaiting re-evaluation"
-                            print(items)
+                            print("Evaluation submitted.")
                             return
             elif action == "5":
                 for projects in self.database.search("Projects.csv").table:
@@ -447,12 +487,13 @@ class User:
                                 return
                             elif choice == "yes":
                                 projects["Status"] = "Finished"
-                                print(projects)
+                                print("Project approved")
                                 return
                             else:
                                 projects["Status"] = "Awaiting re-finalization"
-                                print(projects)
+                                print("Project rejected")
                                 return
+                print("Project is not ready to be approved.")
         elif self.clearance == 3:
             project = {}
             if action == "1":
@@ -477,7 +518,7 @@ class User:
                 project.update({"Status": "Awaiting revision"})
                 project.update({"Details": "first draft"})
                 self.database.search("Projects.csv").insert([project])
-                print(self.database.search("Projects.csv"))
+                self.read_project()
             elif action == "2":
                 print("Showing students without a group.")
                 for students in self.database.search("persons.csv").table:
@@ -533,10 +574,9 @@ class User:
                                     return
                         self.database.search(
                             "member_request.csv").insert([request])
-                        print(self.database.search("member_request.csv"))
+                        print("Request submitted.")
                 elif choice == "2":
                     user_ids = []
-                    print(self.database.search("member_request.csv").table)
                     count = 1
                     buffer = 0
                     print("Showing Accepted requests.")
@@ -618,10 +658,9 @@ class User:
                     self.database.search(
                         "login.csv").update_table(
                         user_ids[int(request) - 1], "role", "member")
-                    print(self.database.search("member_request.csv").table)
-                    print()
-                    print(self.database.search("Projects.csv").table)
+                    self.read_project()
             elif action == "4":
+                self.read_eval()
                 self.read_project()
                 print("Updating details. Enter esc to exit.")
                 for project in self.database.search("Projects.csv").table:
@@ -650,7 +689,7 @@ class User:
                         print(f"{count}. {advisors['first']} "
                               f"{advisors['last']}")
                         count += 1
-                print("Enter a number from the list to invite an advisor\n "
+                print("Enter a number from the list to invite an advisor\n"
                       "enter esc to exit.")
                 advisor = input("Enter number: ")
                 if advisor == "esc":
@@ -678,7 +717,6 @@ class User:
                         self.database.search("Advisor_request.csv").insert(
                             [request])
                         print("Request sent")
-                        print(self.database.search("Advisor_request.csv"))
             elif action == "6":
                 check = False
                 for projects in self.database.search("Projects.csv").table:
@@ -697,10 +735,14 @@ class User:
                                 choice = input("Confirm?(yes/no): ")
                             if choice == "yes":
                                 print("Finalization request submitted.")
-                                projects["Status"] = "finalizing"
+                                projects["Status"] = "Awaiting finalization"
+                                return
                             else:
                                 print("Aborting.")
                                 return
+                        if projects["Status"] == "finalizing":
+                            print("Waiting for approval.")
+                            return
                 print("Submitting final project for evaluation.")
                 choice = input("Confirm?(yes/no): ")
                 while choice != "yes" and choice != "no":
@@ -718,7 +760,7 @@ class User:
                                 evaluate.update({"no_advisors": 3})
                                 evaluate.update({"comments": []})
                                 evaluate.update({
-                                    "evaluators": project["Advisor"]})
+                                    "evaluators": projects["Advisor"]})
                                 evaluate.update({"score": []})
                                 evaluate.update({"date": "processing"})
                                 self.database.search(
@@ -766,7 +808,7 @@ class User:
                     if str(self.id) == inv["Member"]:
                         if projects == inv["ID"]:
                             inv["Response"] = "Awaiting confirmation"
-                print(self.database.search("member_request.csv"))
+                print("Response submitted.")
             elif action == "3":
                 print("Become a lead student?")
                 answer = input("(yes/no): ")
@@ -783,6 +825,7 @@ class User:
                             self.clearance = 3
                             user["role"] = "lead"
         elif self.clearance == 5:
+            self.read_eval()
             self.read_project()
             print("Updating details. Enter esc to exit.")
             for project in self.database.search("Projects.csv").table:
@@ -792,7 +835,7 @@ class User:
                     if details == "esc":
                         return
                     project["Details"] = details
-                    print(project)
+                    self.read_project()
                     return
 
 
