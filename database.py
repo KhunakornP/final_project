@@ -183,7 +183,7 @@ class User:
 
     def read_eval(self):
         """
-        Reads the projects evalutions.
+        Reads the projects evaluations.
         """
         for projects in self.database.search("Projects.csv").table:
             members = [projects['Lead'], projects['Member1'],
@@ -210,7 +210,7 @@ class User:
                                   f"Score: {score[evaluator]}")
                             evaluator += 1
                         total_score = \
-                            (sum([int(i) for i in score])/ len(score))
+                            (sum([int(i) for i in score]) / len(score))
                         print(f"Total score: "
                               f"{total_score:.2f}")
                         print()
@@ -393,6 +393,7 @@ class User:
                     for projects in self.database.search("Projects.csv").table:
                         if projects["ID"] == project_id:
                             projects["Advisor"] = self.id
+                            projects["Status"] = "Awaiting evaluation"
             elif action == "3":
                 print("List of projects:")
                 if len(self.database.search("Projects.csv").table) == 0:
@@ -777,42 +778,33 @@ class User:
                             [request])
                         print("Request sent")
             elif action == "6":
-                check = False
-                for projects in self.database.search("Projects.csv").table:
-                    if str(self.id) in projects["Lead"]:
-                        check = True
-                if not check:
-                    print("No project provided aborting.")
-                    return
+                evaluation = ["Awaiting evaluation", "Awaiting re-evaluation"]
                 for projects in self.database.search("Projects.csv").table:
                     if str(self.id) in projects["Lead"]:
                         if projects["Status"] == "Awaiting finalization":
                             print("Submitting final project for finalization.")
                             choice = input("Confirm?(yes/no): ")
-                            while choice != "yes" and choice != "no":
+                            while choice not in ["yes", "no"]:
                                 print("Invalid choice.")
                                 choice = input("Confirm?(yes/no): ")
                             if choice == "yes":
                                 print("Finalization request submitted.")
                                 projects["Status"] = "Awaiting finalization"
                                 return
-                            else:
-                                print("Aborting.")
-                                return
-                        if projects["Status"] == "finalizing":
+                            print("Aborting.")
+                        elif projects["Status"] == "finalizing":
                             print("Waiting for approval.")
-                            return
-                print("Submitting final project for evaluation.")
-                choice = input("Confirm?(yes/no): ")
-                while choice != "yes" and choice != "no":
-                    print("Invalid choice.")
-                    choice = input("Confirm?(yes/no): ")
-                if choice == "yes":
-                    print("Project submitted.")
-                    for projects in self.database.search("Projects.csv").table:
-                        if str(self.id) in projects["Lead"]:
-                            if projects["Status"] != "Evaluating":
-                                projects["Status"] = "Evaluating"
+                        elif projects["Status"] == "evaluating":
+                            print("Waiting for approval.")
+                        elif projects["Status"] in evaluation:
+                            print("Submitting final project for evaluation.")
+                            choice = input("Confirm?(yes/no): ")
+                            while choice not in ["yes", "no"]:
+                                print("Invalid choice.")
+                                choice = input("Confirm?(yes/no): ")
+                            if choice == "yes":
+                                print("Project submitted.")
+                                projects["Status"] = "evaluating"
                                 evaluate = {}
                                 evaluate.update({"ID": projects["ID"]})
                                 evaluate.update({"title": projects["Title"]})
@@ -824,9 +816,9 @@ class User:
                                 evaluate.update({"date": "processing"})
                                 self.database.search(
                                     "evaluation.csv").table.append(evaluate)
-                elif choice == "no":
-                    print("Aborting.")
-                    return
+                                return
+                            print("Aborting.")
+                print("No suitable project provided aborting.")
         elif self.clearance == 4:
             if action == "1":
                 check = False
