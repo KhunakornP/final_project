@@ -429,27 +429,31 @@ class User:
                         break
                 if advisor:
                     advisor_list = []
+                    advisor_name = []
                     count = 1
-                    print("Showing faculty members")
                     for advisors in self.database.search("persons.csv").table:
                         if advisors["type"] in ["faculty", 'advisor']:
                             if advisors["ID"] != self.id:
-                                print(f"{count}. {advisors['first']} "
-                                      f"{advisors['last']}")
+                                advisor_name.append(f"{count}. "
+                                                    f"{advisors['first']} "
+                                                    f"{advisors['last']}")
                                 advisor_list.append(advisors)
                                 count += 1
-                    num = input("Enter the number of advisors"
+                    num = input("Enter the number of advisors min 3"
                                 "(esc to cancel): ")
                     if num == "esc":
                         return
                     while not 3 <= int(num) <= len(advisor_list):
                         print("Invalid amount.")
-                        num = input("Enter the number of advisors"
+                        num = input("Enter the number of advisors "
                                     "(esc to cancel): ")
                         if num == "esc":
                             return
                     inv = 1
                     inv_list = [self.id]
+                    print("Showing faculty members")
+                    for advisor in advisor_name:
+                        print(advisor)
                     print("Enter a number from the list to invite"
                           " an advisor.")
                     advisor = input("Enter number: ")
@@ -534,14 +538,14 @@ class User:
                                 items["date"] = time.asctime(time.localtime())
                                 total_score = (sum([int(i) for i in score])
                                                / len(score))
-                                for i in self.database.search(
+                                for advisor in self.database.search(
                                         "Projects.csv").table:
-                                    if i['ID'] == project:
+                                    if advisor['ID'] == project:
                                         if total_score >= 7.5:
-                                            i['Status'] = \
+                                            advisor['Status'] = \
                                                 "Awaiting finalization"
                                         else:
-                                            i['Status'] = \
+                                            advisor['Status'] = \
                                                 "Awaiting re-evaluation"
                             print("Evaluation submitted.")
                             return
@@ -678,30 +682,30 @@ class User:
                     request = input("Enter a request number to "
                                     "approve or deny enter esc to exit: ")
                     if request == "esc":
-                        for i in self.database.search(
+                        for advisor in self.database.search(
                                 "member_request.csv").table:
-                            if i["Response"] == "pending":
-                                i["Response"] = "Awaiting confirmation"
+                            if advisor["Response"] == "pending":
+                                advisor["Response"] = "Awaiting confirmation"
                         return
                     while int(request) not in range(count + 1):
                         print("Invalid request number.")
                         request = input("Enter a request number to "
                                         "approve or deny enter esc to exit: ")
                         if request == "esc":
-                            for i in self.database.search(
+                            for advisor in self.database.search(
                                     "member_request.csv").table:
-                                if i["Response"] == "pending":
-                                    i["Response"] = "Awaiting confirmation"
+                                if advisor["Response"] == "pending":
+                                    advisor["Response"] = "Awaiting confirmation"
                             return
                     response = input("response (approve/deny): ")
                     if response == "deny":
                         self.database.search("member_request.csv").table[
                             int(request) - 1 + buffer].update(
                             {"Response": response})
-                        for i in self.database.search(
+                        for advisor in self.database.search(
                                 "member_request.csv").table:
-                            if i["Response"] == "pending":
-                                i["Response"] = "Awaiting confirmation"
+                            if advisor["Response"] == "pending":
+                                advisor["Response"] = "Awaiting confirmation"
                             return
                     not_full = False
                     for project in self.database.search("Projects.csv").table:
@@ -719,9 +723,9 @@ class User:
                     if not not_full:
                         print("The project is full.")
                         return
-                    for i in self.database.search("member_request.csv").table:
-                        if i["Response"] == "pending":
-                            i["Response"] = "Awaiting confirmation"
+                    for advisor in self.database.search("member_request.csv").table:
+                        if advisor["Response"] == "pending":
+                            advisor["Response"] = "Awaiting confirmation"
                     self.database.search("member_request.csv").table[
                         int(request) - 1 + buffer].update(
                         {"Response": "approved"})
