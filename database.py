@@ -462,7 +462,8 @@ class User:
                         inv += 1
                     for projects in self.database.search("Projects.csv").table:
                         if projects["ID"] == str(proj_id):
-                            print(f"Title: {projects['Title']}\n"
+                            print(f"<Evaluating project>\n"
+                                  f"Title: {projects['Title']}\n"
                                   f"Details: {projects['Details']}")
                             break
                     comment = input('Enter comment: ')
