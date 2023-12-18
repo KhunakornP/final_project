@@ -51,7 +51,7 @@ evaluations.
 ### students
 
 - View and respond to their project invitations.
-- Become a lead.
+- Become a lead (will automatically deny all project invitations).
 
 ### members
 

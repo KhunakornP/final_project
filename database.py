@@ -149,6 +149,15 @@ class User:
             action = input("Enter action: ")
         return False
 
+    def lead_deny_all(self):
+        """
+        Denies all project invitations when becoming a lead.
+        """
+        for request in self.database.search("member_request.csv").table:
+            if self.id == request["Member"]:
+                request["Response"] = "deny"
+                request["Date of response"] = time.asctime(time.localtime())
+
     def check_advisor(self):
         """
         Checks if the user is an advisor.
@@ -579,7 +588,7 @@ class User:
                 project.update({"Member1": "None"})
                 project.update({"Member2": "None"})
                 project.update({"Advisor": "None"})
-                project.update({"Status": "Awaiting revision"})
+                project.update({"Status": "Awaiting advisor"})
                 project.update({"Details": "first draft"})
                 self.database.search("Projects.csv").insert([project])
                 self.read_project()
@@ -879,6 +888,7 @@ class User:
                         if user["ID"] == str(self.id):
                             self.clearance = 3
                             user["role"] = "lead"
+                    self.lead_deny_all()
         elif self.clearance == 5:
             self.read_eval()
             self.read_project()
