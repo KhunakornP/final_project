@@ -339,18 +339,21 @@ class User:
                     print(result)
         elif self.clearance == 2:
             if action == "1":
+                check = False
+                print("Your current requests.")
                 if len(self.database.search("Advisor_request.csv").table) < 1:
                     print("No requests found.")
                     return
                 for request in (
                         self.database.search("Advisor_request.csv").table):
-                    print("Your current requests.")
                     if (request["Advisor"].split())[0] in self.username:
-                        print(f"Project ID: {request['ID']}\n"
-                              f"Requesting {request['Advisor']}")
-                        print()
-                    else:
-                        print("No requests found.")
+                        if request['Response'] not in ['approve', 'deny']:
+                            print(f"Project ID: {request['ID']}\n"
+                                  f"Requesting {request['Advisor']}")
+                            print()
+                            check = True
+                if not check:
+                    print("No requests found.")
             elif action == "2":
                 if len(self.database.search("Advisor_request.csv").table) < 1:
                     print("No requests found.")
@@ -864,7 +867,7 @@ class User:
             elif action == "3":
                 print("Become a lead student?")
                 answer = input("(yes/no): ")
-                while answer != "yes" and answer != "no":
+                while answer not in ["yes",'no']:
                     print("Invalid choice.")
                     answer = input("(yes/no): ")
                 if answer == "yes":
